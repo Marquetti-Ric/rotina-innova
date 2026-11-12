@@ -1,0 +1,132 @@
+name: Gerar APK e publicar versão
+
+# Dispara ao criar uma tag v1.0.0, v1.1.0 etc.
+# Pelo celular: GitHub → Releases → Draft a new release → Choose a tag → v1.0.0 → Publish.
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+    inputs:
+      versao:
+        description: 'Versão (ex: 1.0.1)'
+        required: true
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Definir versão
+        id: versao
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            NOME="${{ inputs.versao }}"
+          else
+            NOME="${GITHUB_REF_NAME#v}"
+          fi
+          CODIGO=$(git rev-list --count HEAD)
+          echo "nome=$NOME"     >> $GITHUB_OUTPUT
+          echo "codigo=$CODIGO" >> $GITHUB_OUTPUT
+          echo "Versão $NOME (versionCode $CODIGO)" >> $GITHUB_STEP_SUMMARY
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+
+      - name: Instalar dependências
+        run: npm ci
+
+      - name: Build web
+        run: npm run build
+
+      - name: Sincronizar Capacitor
+        run: npx cap sync android
+
+      - name: Gravar versão no projeto Android
+        run: |
+          sed -i "s/versionCode .*/versionCode ${{ steps.versao.outputs.codigo }}/" android/app/build.gradle
+          sed -i "s/versionName .*/versionName \"${{ steps.versao.outputs.nome }}\"/" android/app/build.gradle
+
+      - name: Restaurar keystore
+        run: |
+          echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 -d > android/app/rotina.keystore
+          cat > android/key.properties <<EOF
+          storeFile=rotina.keystore
+          storePassword=${{ secrets.ANDROID_STORE_PASSWORD }}
+          keyAlias=${{ secrets.ANDROID_KEY_ALIAS }}
+          keyPassword=${{ secrets.ANDROID_KEY_PASSWORD }}
+          EOF
+
+      - name: Compilar APK e AAB assinados
+        run: |
+          cd android
+          chmod +x gradlew
+          ./gradlew assembleRelease bundleRelease --no-daemon
+
+      - name: Renomear artefatos
+        id: arquivos
+        run: |
+          V=${{ steps.versao.outputs.nome }}
+          mkdir -p entrega
+          cp android/app/build/outputs/apk/release/app-release.apk  entrega/rotina-innova-$V.apk
+          cp android/app/build/outputs/bundle/release/app-release.aab entrega/rotina-innova-$V.aab
+          echo "apk=entrega/rotina-innova-$V.apk" >> $GITHUB_OUTPUT
+          echo "aab=entrega/rotina-innova-$V.aab" >> $GITHUB_OUTPUT
+          echo "tamanho=$(du -h entrega/rotina-innova-$V.apk | cut -f1)" >> $GITHUB_OUTPUT
+
+      - name: Publicar Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ steps.versao.outputs.nome }}
+          name: Rotina Innova ${{ steps.versao.outputs.nome }}
+          generate_release_notes: true
+          files: |
+            ${{ steps.arquivos.outputs.apk }}
+            ${{ steps.arquivos.outputs.aab }}
+
+      - name: Atualizar manifesto do site
+        run: |
+          V=${{ steps.versao.outputs.nome }}
+          C=${{ steps.versao.outputs.codigo }}
+          REPO=${{ github.repository }}
+          cat > docs/latest.json <<EOF
+          {
+            "versionName": "$V",
+            "versionCode": $C,
+            "tamanho": "${{ steps.arquivos.outputs.tamanho }}",
+            "publicadoEm": "$(date -u +%Y-%m-%d)",
+            "apk": "https://github.com/$REPO/releases/download/v$V/rotina-innova-$V.apk",
+            "release": "https://github.com/$REPO/releases/tag/v$V",
+            "obrigatoria": false,
+            "notas": "Nova versão disponível."
+          }
+          EOF
+
+      - name: Commitar manifesto
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add docs/latest.json
+          git commit -m "Publica versão ${{ steps.versao.outputs.nome }}" || exit 0
+          git push origin HEAD:${{ github.event.repository.default_branch }}
+
+      - name: Resumo
+        run: |
+          echo "### APK pronto" >> $GITHUB_STEP_SUMMARY
+          echo "- Versão: ${{ steps.versao.outputs.nome }} (code ${{ steps.versao.outputs.codigo }})" >> $GITHUB_STEP_SUMMARY
+          echo "- Tamanho: ${{ steps.arquivos.outputs.tamanho }}" >> $GITHUB_STEP_SUMMARY
+          echo "- A página de download já aponta para ela." >> $GITHUB_STEP_SUMMARY

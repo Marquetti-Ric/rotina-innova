@@ -1,0 +1,25 @@
+node_modules
+dist
+.env
+.env.*
+.DS_Store
+testes/*.mjs
+
+# Chave de assinatura — NUNCA versionar
+*.keystore
+*.jks
+android/key.properties
+
+# Android
+android/app/build
+android/build
+android/.gradle
+android/local.properties
+android/app/release
+android/capacitor-cordova-android-plugins/build
+
+# iOS
+ios/App/Pods
+ios/App/build
+ios/App/App.xcworkspace/xcuserdata
+ios/App/App.xcodeproj/xcuserdata

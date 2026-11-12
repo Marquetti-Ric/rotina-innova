@@ -1,0 +1,57 @@
+name: Licenças de uso
+
+# Toda a gestão de acesso, operável do celular:
+# GitHub → Actions → "Licenças de uso" → Run workflow → preencher → Run.
+# O código gerado aparece no resumo da execução.
+on:
+  workflow_dispatch:
+    inputs:
+      acao:
+        description: 'O que fazer'
+        required: true
+        type: choice
+        options: [liberar, renovar, revogar, listar]
+        default: liberar
+      apelido:
+        description: 'Apelido do usuário (arquivo é PÚBLICO — use apelido, nunca nome completo de criança)'
+        required: false
+        default: ''
+      validade:
+        description: 'Válida até (AAAA-MM-DD). Vazio = sem prazo'
+        required: false
+        default: ''
+      codigo:
+        description: 'Código existente (para renovar ou revogar)'
+        required: false
+        default: ''
+
+permissions:
+  contents: write
+
+jobs:
+  gerir:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with: { node-version: '22' }
+
+      - name: Executar
+        id: lic
+        run: |
+          node scripts/licenca.mjs \
+            --acao "${{ inputs.acao }}" \
+            --apelido "${{ inputs.apelido }}" \
+            --validade "${{ inputs.validade }}" \
+            --codigo "${{ inputs.codigo }}" \
+            >> $GITHUB_STEP_SUMMARY
+
+      - name: Commitar alteração
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add docs/licencas.json
+          git diff --cached --quiet && echo "Nada mudou." && exit 0
+          git commit -m "Licenças: ${{ inputs.acao }} ${{ inputs.apelido }}"
+          git push

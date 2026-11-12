@@ -1,0 +1,24 @@
+import { JSDOM } from 'jsdom';
+import React from 'react';
+import { createRoot } from 'react-dom/client';
+import { act } from 'react';
+const dom = new JSDOM('<!doctype html><html><body><div id="root"></div></body></html>', { url:'http://localhost/', pretendToBeVisual:true });
+global.window = dom.window; global.document = dom.window.document;
+Object.defineProperty(global,'navigator',{value:dom.window.navigator,configurable:true});
+global.HTMLElement = dom.window.HTMLElement; global.Element = dom.window.Element; global.Node = dom.window.Node;
+global.IS_REACT_ACT_ENVIRONMENT = true;
+Object.defineProperty(dom.window,'crypto',{value:globalThis.crypto,configurable:true});
+global.fetch = async () => ({ ok:true, json: async () => ({ graciaDias:7, licencas:[] }) });
+const Portao = (await import('../src/Portao.jsx')).default;
+const root = createRoot(document.getElementById('root'));
+await act(async () => { root.render(React.createElement(Portao)); });
+await act(async () => { await new Promise(r=>setTimeout(r,100)); });
+const campo = document.querySelector('.pt-campo');
+const botao = document.querySelector('.pt-botao');
+console.log('campo existe:', !!campo, '| botao disabled:', botao.disabled);
+await act(async () => {
+  const set = Object.getOwnPropertyDescriptor(dom.window.HTMLInputElement.prototype,'value').set;
+  set.call(campo,'INNV-1111-2222-3333');
+  campo.dispatchEvent(new dom.window.Event('input',{bubbles:true}));
+});
+console.log('após digitar → value:', campo.value, '| disabled:', document.querySelector('.pt-botao').disabled);
