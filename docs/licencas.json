@@ -1,5 +1,13 @@
 {
-  "atualizadoEm": "2026-11-11",
+  "atualizadoEm": "2026-11-13",
   "graciaDias": 7,
-  "licencas": []
+  "licencas": [
+    {
+      "h": "d0494901ac679423449a858cb00f911b1df1002ee2611e312eae9ac67a31265f",
+      "apelido": "Teste interno",
+      "criadaEm": "2026-11-13",
+      "validade": null,
+      "ativa": true
+    }
+  ]
 }
