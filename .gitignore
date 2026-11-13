@@ -23,3 +23,10 @@ ios/App/Pods
 ios/App/build
 ios/App/App.xcworkspace/xcuserdata
 ios/App/App.xcodeproj/xcuserdata
+
+# iOS — gerados pelo CocoaPods e pelo Xcode
+ios/App/Pods
+ios/App/App.xcworkspace/xcuserdata
+ios/App/App.xcodeproj/xcuserdata
+ios/App/public
+ios/DerivedData
