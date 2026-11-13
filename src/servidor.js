@@ -5,7 +5,7 @@
  * marca e a entrada do servidor no ar.
  */
 
-export const SITE = 'https://marquetti-ric.github.io/combinado';
+export const SITE = 'https://marquetti-ric.github.io/rotina-innova';
 
 /* Preencher depois de implantar o servidor (veja servidor/README.md).
    Exemplo: 'https://abcdefgh.supabase.co/functions/v1' */

@@ -29,7 +29,7 @@ echo " por cima — as famílias teriam que desinstalar e perder os dados."
 echo "==================================================================="
 echo
 echo "Agora cadastre os quatro secrets em:"
-echo "  github.com/Marquetti-Ric/combinado → Settings → Secrets and variables → Actions"
+echo "  github.com/Marquetti-Ric/rotina-innova → Settings → Secrets and variables → Actions"
 echo
 echo "ANDROID_KEY_ALIAS      = $ALIAS"
 echo "ANDROID_STORE_PASSWORD = (a senha que você digitou)"

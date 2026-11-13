@@ -40,7 +40,7 @@ src/servidor.js                   ← ajuste o endereço aqui
 Em `src/servidor.js`, corrija a primeira linha se a organização tiver outro nome:
 
 ```js
-export const SITE = 'https://marquetti-ric.github.io/combinado';
+export const SITE = 'https://marquetti-ric.github.io/rotina-innova';
 ```
 
 Instale a dependência que falta:
@@ -101,7 +101,7 @@ buildTypes {
 - Settings → **Actions** → General → Workflow permissions → **Read and write permissions**
 - Settings → **Pages** → Source: *Deploy from a branch* → `main` / **`/docs`**
 
-A página fica em `https://marquetti-ric.github.io/combinado/`.
+A página fica em `https://marquetti-ric.github.io/rotina-innova/`.
 
 ### 1.7 Primeira publicação
 Commit, push, e crie a tag:

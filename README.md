@@ -40,7 +40,7 @@ Settings → Secrets and variables → Actions → New repository secret:
 - Settings → Actions → General → Workflow permissions → **Read and write**
 - Settings → Pages → Source: *Deploy from a branch* → `main` / **`/docs`**
 
-O site fica em `marquetti-ric.github.io/combinado`.
+O site fica em `marquetti-ric.github.io/rotina-innova`.
 
 ### 5. Primeira versão
 No GitHub Desktop ou pelo site: crie a tag `v1.0.0` e publique um Release.
