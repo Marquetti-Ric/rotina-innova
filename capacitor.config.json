@@ -1,6 +1,6 @@
 {
-  "appId": "br.com.institutoinnova.rotina",
-  "appName": "Rotina Innova",
+  "appId": "br.com.combinado.app",
+  "appName": "Combinado",
   "webDir": "dist",
   "backgroundColor": "#F0EEDF",
   "plugins": {

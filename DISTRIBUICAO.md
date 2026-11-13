@@ -1,4 +1,4 @@
-# Distribuição, atualização e licenças — Rotina Innova
+# Distribuição, atualização e licenças — Combinado
 
 Quatro peças, todas dentro do GitHub:
 
@@ -16,7 +16,7 @@ Depois da montagem inicial, **tudo é operável do celular** pelo app do GitHub.
 ## Parte 1 — Montagem (uma vez só, no Mac, ~40 min)
 
 ### 1.1 Repositório
-Crie `rotina-innova` **público** na conta `Marquetti-Ric`. Público é necessário para o GitHub Pages gratuito — e o código-fonte aberto não enfraquece nada aqui: a chave de assinatura fica em *secrets*, e a lista de licenças guarda apenas hashes.
+Crie `combinado` **público** na conta `Marquetti-Ric`. Público é necessário para o GitHub Pages gratuito — e o código-fonte aberto não enfraquece nada aqui: a chave de assinatura fica em *secrets*, e a lista de licenças guarda apenas hashes.
 
 ### 1.2 Copie o pacote
 Descompacte este pacote na raiz do projeto Capacitor que o runbook montou:
@@ -29,7 +29,7 @@ docs/index.html                   ← página de download
 docs/privacidade.html             ← política de privacidade
 docs/latest.json                  ← manifesto de versão
 docs/licencas.json                ← licenças (só hashes)
-docs/logo-innova.png
+docs/logo-combinado.svg
 src/main.jsx                      ← substitui o atual
 src/Portao.jsx                     ← ativação + avisos
 src/licenca.js
@@ -40,7 +40,7 @@ src/servidor.js                   ← ajuste o endereço aqui
 Em `src/servidor.js`, corrija a primeira linha se a organização tiver outro nome:
 
 ```js
-export const SITE = 'https://marquetti-ric.github.io/rotina-innova';
+export const SITE = 'https://marquetti-ric.github.io/combinado';
 ```
 
 Instale a dependência que falta:
@@ -49,18 +49,18 @@ Instale a dependência que falta:
 npm install @capacitor/browser
 ```
 
-Copie também `docs/logo-innova.png` para `public/logo-innova.png` — o Portão usa.
+Copie também `docs/logo-combinado.svg` para `public/logo-combinado.svg` — o Portão usa.
 
 ### 1.3 Chave de assinatura
 
 ```bash
-keytool -genkey -v -keystore rotina.keystore \
+keytool -genkey -v -keystore combinado.keystore \
   -alias rotina -keyalg RSA -keysize 2048 -validity 10000
 
-base64 -i rotina.keystore | pbcopy   # já vai para a área de transferência
+base64 -i combinado.keystore | pbcopy   # já vai para a área de transferência
 ```
 
-> **Guarde `rotina.keystore` e a senha no cofre do Instituto, com cópia em outro lugar.** Sem ela, nenhuma atualização futura instala por cima — os usuários teriam que desinstalar e perder os dados.
+> **Guarde `combinado.keystore` e a senha no cofre do Instituto, com cópia em outro lugar.** Sem ela, nenhuma atualização futura instala por cima — os usuários teriam que desinstalar e perder os dados.
 
 ### 1.4 Secrets
 Repositório → Settings → Secrets and variables → Actions → **New repository secret**:
@@ -86,7 +86,7 @@ E dentro de `android { }`:
 ```gradle
 signingConfigs {
     release {
-        storeFile file(keystoreProperties['storeFile'] ?: 'rotina.keystore')
+        storeFile file(keystoreProperties['storeFile'] ?: 'combinado.keystore')
         storePassword keystoreProperties['storePassword']
         keyAlias keystoreProperties['keyAlias']
         keyPassword keystoreProperties['keyPassword']
@@ -101,7 +101,7 @@ buildTypes {
 - Settings → **Actions** → General → Workflow permissions → **Read and write permissions**
 - Settings → **Pages** → Source: *Deploy from a branch* → `main` / **`/docs`**
 
-A página fica em `https://marquetti-ric.github.io/rotina-innova/`.
+A página fica em `https://marquetti-ric.github.io/combinado/`.
 
 ### 1.7 Primeira publicação
 Commit, push, e crie a tag:
@@ -128,7 +128,7 @@ App do GitHub → **Actions** → *Licenças de uso* → **Run workflow**:
 - apelido: como você vai reconhecer esse usuário
 - validade: `2027-12-31` (ou vazio, sem prazo)
 
-O código aparece no resumo da execução, no formato `INNV-7K3M-QX2P-9TWD`. Copie e entregue ao responsável — **ele não é recuperável depois**, porque só o hash fica guardado.
+O código aparece no resumo da execução, no formato `CMB-7K3M-QX2P-9TWD`. Copie e entregue ao responsável — **ele não é recuperável depois**, porque só o hash fica guardado.
 
 ### Revogar, renovar, listar
 Mesmo workflow, mudando a ação. `listar` devolve uma tabela com apelido, data e situação de todas as licenças.

@@ -1,4 +1,4 @@
-package br.com.institutoinnova.rotina;
+package br.com.combinado.app;
 
 import com.getcapacitor.BridgeActivity;
 

@@ -1,4 +1,4 @@
-/* Controle de acesso do Rotina Innova.
+/* Controle de acesso do Combinado.
  *
  * Como funciona: o responsável digita o código uma vez. O app guarda apenas o
  * hash SHA-256 e, quando há internet, confere esse hash na lista publicada.
@@ -60,8 +60,8 @@ export async function ativar(codigo) {
   const h = await sha256(limpo);
   const achada = (lista.licencas || []).find((l) => l.h === h);
 
-  if (!achada) return { ok: false, motivo: 'Código não encontrado. Confira com o Instituto Innova.' };
-  if (!achada.ativa) return { ok: false, motivo: 'Este código foi desativado. Fale com o Instituto Innova.' };
+  if (!achada) return { ok: false, motivo: 'Código não encontrado. Confira com a clínica.' };
+  if (!achada.ativa) return { ok: false, motivo: 'Este código foi desativado. Fale com a clínica.' };
   if (achada.validade && achada.validade < hoje()) {
     return { ok: false, motivo: `Este código venceu em ${achada.validade}.` };
   }

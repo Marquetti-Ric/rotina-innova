@@ -1,6 +1,7 @@
-# Rotina Innova
+# Combinado
 
-Organizador visual de rotinas diárias para crianças, do **Instituto Innova**.
+Organizador visual de rotinas diárias para crianças. Plataforma de marca branca:
+cada clínica sobe o próprio logotipo e a própria cor.
 React + Capacitor, distribuído como APK pela página do Instituto.
 
 > Este aplicativo organiza e estimula a rotina. Não substitui o acompanhamento
@@ -14,7 +15,7 @@ Faça uma vez só, no Mac. Depois disso, a operação inteira é pelo celular.
 
 ### 1. Subir para o GitHub
 Crie em github.com/Marquetti-Ric um repositório **público** chamado
-`rotina-innova`, sem README. No GitHub Desktop: *Add Local Repository* → aponte
+`combinado`, sem README. No GitHub Desktop: *Add Local Repository* → aponte
 para esta pasta → *Publish repository* (desmarque "Keep this code private").
 
 Público é necessário para o GitHub Pages gratuito. Não enfraquece nada: a chave
@@ -27,7 +28,7 @@ de assinatura fica em *secrets* e a lista de licenças guarda só hashes.
 ```
 
 O script gera a chave e imprime os quatro valores para os secrets. Guarde o
-arquivo `rotina.keystore` e a senha no cofre do Instituto, com cópia.
+arquivo `combinado.keystore` e a senha no cofre do Instituto, com cópia.
 
 ### 3. Cadastrar os secrets
 Settings → Secrets and variables → Actions → New repository secret:
@@ -39,7 +40,7 @@ Settings → Secrets and variables → Actions → New repository secret:
 - Settings → Actions → General → Workflow permissions → **Read and write**
 - Settings → Pages → Source: *Deploy from a branch* → `main` / **`/docs`**
 
-O site fica em `marquetti-ric.github.io/rotina-innova`.
+O site fica em `marquetti-ric.github.io/combinado`.
 
 ### 5. Primeira versão
 No GitHub Desktop ou pelo site: crie a tag `v1.0.0` e publique um Release.

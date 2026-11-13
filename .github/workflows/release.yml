@@ -63,9 +63,9 @@ jobs:
 
       - name: Restaurar keystore
         run: |
-          echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 -d > android/app/rotina.keystore
+          echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 -d > android/app/combinado.keystore
           cat > android/key.properties <<EOF
-          storeFile=rotina.keystore
+          storeFile=combinado.keystore
           storePassword=${{ secrets.ANDROID_STORE_PASSWORD }}
           keyAlias=${{ secrets.ANDROID_KEY_ALIAS }}
           keyPassword=${{ secrets.ANDROID_KEY_PASSWORD }}
@@ -82,17 +82,17 @@ jobs:
         run: |
           V=${{ steps.versao.outputs.nome }}
           mkdir -p entrega
-          cp android/app/build/outputs/apk/release/app-release.apk  entrega/rotina-innova-$V.apk
-          cp android/app/build/outputs/bundle/release/app-release.aab entrega/rotina-innova-$V.aab
-          echo "apk=entrega/rotina-innova-$V.apk" >> $GITHUB_OUTPUT
-          echo "aab=entrega/rotina-innova-$V.aab" >> $GITHUB_OUTPUT
-          echo "tamanho=$(du -h entrega/rotina-innova-$V.apk | cut -f1)" >> $GITHUB_OUTPUT
+          cp android/app/build/outputs/apk/release/app-release.apk  entrega/combinado-$V.apk
+          cp android/app/build/outputs/bundle/release/app-release.aab entrega/combinado-$V.aab
+          echo "apk=entrega/combinado-$V.apk" >> $GITHUB_OUTPUT
+          echo "aab=entrega/combinado-$V.aab" >> $GITHUB_OUTPUT
+          echo "tamanho=$(du -h entrega/combinado-$V.apk | cut -f1)" >> $GITHUB_OUTPUT
 
       - name: Publicar Release
         uses: softprops/action-gh-release@v2
         with:
           tag_name: v${{ steps.versao.outputs.nome }}
-          name: Rotina Innova ${{ steps.versao.outputs.nome }}
+          name: Combinado ${{ steps.versao.outputs.nome }}
           generate_release_notes: true
           files: |
             ${{ steps.arquivos.outputs.apk }}
@@ -109,7 +109,7 @@ jobs:
             "versionCode": $C,
             "tamanho": "${{ steps.arquivos.outputs.tamanho }}",
             "publicadoEm": "$(date -u +%Y-%m-%d)",
-            "apk": "https://github.com/$REPO/releases/download/v$V/rotina-innova-$V.apk",
+            "apk": "https://github.com/$REPO/releases/download/v$V/combinado-$V.apk",
             "release": "https://github.com/$REPO/releases/tag/v$V",
             "obrigatoria": false,
             "notas": "Nova versão disponível."

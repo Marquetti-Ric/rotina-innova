@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import App from './App.jsx';
 import { conferir, ativar } from './licenca';
 import { checar, adiar, baixar } from './atualizacao';
+import { marca } from './marca';
 
 /* Envolve o app: ativação, carência, bloqueio e aviso de nova versão.
    O App.jsx não precisa saber que isto existe. */
@@ -45,8 +46,8 @@ function Moldura({ children }) {
   return (
     <div className="pt">
       <style>{CSS}</style>
-      <img src="/logo-innova.png" alt="" className="pt-logo" />
-      <div className="pt-marca">INSTITUTO INNOVA</div>
+      <img src={marca().logo} alt="" className="pt-logo" />
+      <div className="pt-marca">{marca().nome}</div>
       {children}
     </div>
   );
@@ -100,14 +101,14 @@ export default function Portao() {
       <Moldura>
         <h1 className="pt-titulo">Código de acesso</h1>
         <p className="pt-texto">
-          Digite o código que o Instituto Innova entregou ao responsável.
+          Digite o código que a clínica entregou ao responsável.
           Isso é pedido uma única vez.
         </p>
         <input
           className="pt-campo"
           value={codigo}
           onChange={(e) => setCodigo(e.target.value.toUpperCase())}
-          placeholder="INNV-0000-0000-0000"
+          placeholder="CMB-0000-0000-0000"
           autoCapitalize="characters"
           autoCorrect="off"
           spellCheck="false"
@@ -119,7 +120,7 @@ export default function Portao() {
         </button>
         {erro && <p className="pt-erro">{erro}</p>}
         <p className="pt-texto" style={{ marginTop: 22, fontSize: 13 }}>
-          Ainda não tem um código? Peça na recepção do Instituto.
+          Ainda não tem um código? Peça na recepção da clínica.
         </p>
       </Moldura>
     );
@@ -149,7 +150,7 @@ export default function Portao() {
           <style>{CSS}</style>
           <span className="pt-faixa-txt">
             Acesso vence em {carencia.diasRestantes} {carencia.diasRestantes === 1 ? 'dia' : 'dias'}
-            <small>Fale com o Instituto Innova para renovar.</small>
+            <small>Fale com a clínica para renovar.</small>
           </span>
           <button className="ignorar" onClick={() => setCarencia(null)}>Ok</button>
         </div>

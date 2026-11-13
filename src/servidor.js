@@ -1,6 +1,6 @@
 /* Endereço único do site publicado pelo GitHub Pages.
    Troque apenas esta linha se o repositório ou a organização mudarem. */
-export const SITE = import.meta.env.VITE_SITE || 'https://marquetti-ric.github.io/rotina-innova';
+export const SITE = import.meta.env.VITE_SITE || 'https://marquetti-ric.github.io/combinado';
 
 export const URL_LICENCAS = `${SITE}/licencas.json`;
 export const URL_VERSAO = `${SITE}/latest.json`;

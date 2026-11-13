@@ -1,7 +1,8 @@
 # Contexto do projeto — leia antes de alterar qualquer coisa
 
-Aplicativo de rotinas diárias para crianças com TEA, do **Instituto Innova**.
-Usado por famílias e pela equipe da clínica.
+Plataforma de rotinas diárias para crianças com TEA, vendida a clínicas e escolas,
+que sobem a própria identidade visual. O Instituto Innova é a primeira clínica cliente,
+não a marca do produto.
 
 ## O que este app é
 

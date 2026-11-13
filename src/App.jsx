@@ -3,6 +3,7 @@ import { App as AppNativo } from "@capacitor/app";
 import { KeepAwake } from "@capacitor-community/keep-awake";
 import { storage } from "./armazenamento";
 import { reprogramar, avisosLigados, definirAvisos } from "./notificacoes";
+import { marca } from "./marca";
 
 /* ============================================================
    ROTINA — jogo de rotinas diárias para crianças com TEA
@@ -21,7 +22,7 @@ const CSS = `
 .rt, .rt * { box-sizing: border-box; margin: 0; padding: 0; }
 
 .rt {
-  /* identidade Instituto Innova — cores medidas no logo original */
+  /* cores institucionais da moldura — a clínica pode sobrescrever o destaque */
   --creme:   #F0EEDF;
   --grafite: #7E7347;
   --ouro:    #ECB70D;
@@ -246,7 +247,7 @@ h1, h2, h3, .display { font-family: 'Baloo 2', ui-rounded, system-ui, sans-serif
   transition: width calc(.6s * var(--t)) cubic-bezier(.2,.9,.3,1); }
 .aviso { background: #FFF6EA; border-radius: 18px; padding: 14px 16px; font-size: 13px; line-height: 1.55; color: #7A5B34; font-weight: 600; }
 
-/* ---------- marca Instituto Innova ---------- */
+/* ---------- a moldura da marca ---------- */
 .logo { display: flex; flex-direction: column; align-items: center; }
 .logo img { display: block; }
 .logo-nome { font-family: 'Source Sans 3', 'Segoe UI', system-ui, sans-serif; font-weight: 400;
@@ -350,15 +351,12 @@ const SOM_FESTA = [[523.25, 0], [659.25, 0.11], [783.99, 0.22], [1046.5, 0.33]];
 const SOM_SECO = [[659.25, 0]];
 
 /* ================= marca ================= */
-/* Monograma oficial do Instituto Innova, embutido a partir do arquivo original.
-   Fundo creme #F0EEDF assado na imagem: ele se funde às superfícies da marca. */
-const MONOGRAMA = "/logo-innova.png";
+/* O símbolo vem de marca.js, que o tema da clínica sobrescreve. */
 
 function Monograma({ tam = 56 }) {
   return (
-    <img src={MONOGRAMA} alt="" aria-hidden="true"
-      width={tam} height={Math.round(tam * 351 / 189)}
-      style={{ width: tam, height: "auto" }} />
+    <img src={marca().logo} alt="" aria-hidden="true"
+      style={{ width: tam, height: "auto", display: "block" }} />
   );
 }
 
@@ -368,15 +366,18 @@ const ESCALAS = {
   grande: { m: 86, nome: 33, tag: 17, gap: 20 },
 };
 
-function LogoInnova({ tamanho = "medio" }) {
+function LogoMarca({ tamanho = "medio" }) {
   const s = ESCALAS[tamanho];
+  const m = marca();
   return (
     <div className="logo">
       <Monograma tam={s.m} />
-      <div className="logo-nome" style={{ fontSize: s.nome, marginTop: s.gap }}>INSTITUTO INNOVA</div>
-      <div className="logo-tag" style={{ fontSize: s.tag, marginTop: s.gap * 0.32 }}>
-        ODONTOLOGIA E&nbsp; SAÚDE INTEGRADA
-      </div>
+      <div className="logo-nome" style={{ fontSize: s.nome, marginTop: s.gap }}>{m.nome}</div>
+      {m.assinatura && (
+        <div className="logo-tag" style={{ fontSize: s.tag, marginTop: s.gap * 0.32 }}>
+          {m.assinatura}
+        </div>
+      )}
     </div>
   );
 }
@@ -1379,7 +1380,7 @@ export default function App() {
     (async () => {
       let calmo = false;
       try {
-        const r = await storage.get("rotina_v3");
+        const r = await storage.get("combinado_v1");
         if (r) {
           const s = JSON.parse(r.value);
           calmo = !!s.calmo;
@@ -1414,7 +1415,7 @@ export default function App() {
   const salvar = useCallback((novo) => {
     setD(novo);
     (async () => {
-      try { await storage.set("rotina_v3", JSON.stringify(novo)); } catch (e) {}
+      try { await storage.set("combinado_v1", JSON.stringify(novo)); } catch (e) {}
       try { reprogramar(todasTarefas(novo)); } catch (e) {}
     })();
   }, []);
@@ -1485,7 +1486,7 @@ export default function App() {
   const Abertura = abertura !== "oculta" && (
     <div className="abertura" data-saindo={abertura === "saindo" ? 1 : 0} aria-hidden="true">
       <div>
-        <div className="logo-entra"><LogoInnova tamanho="grande" /></div>
+        <div className="logo-entra"><LogoMarca tamanho="grande" /></div>
         <p className="abertura-linha">
           Rotina passo a passo<br />
           <span style={{ fontSize: 11, letterSpacing: ".14em", textTransform: "uppercase" }}>
@@ -1505,7 +1506,7 @@ export default function App() {
         <style>{CSS}</style>
         {Abertura}
         <div className="tela">
-          <div style={{ paddingTop: 10 }}><LogoInnova tamanho="pequeno" /></div>
+          <div style={{ paddingTop: 10 }}><LogoMarca tamanho="pequeno" /></div>
           <div style={{ textAlign: "center" }}>
             <Avatar id="a" tam={78} />
             <h1 className="nome" style={{ fontSize: 27, marginTop: 10 }}>Quantos anos tem a criança?</h1>
@@ -1604,8 +1605,8 @@ export default function App() {
           <div className="assinatura">
             <Monograma tam={26} />
             <span className="assinatura-txt">
-              Aplicação de apoio ao desenvolvimento<br />
-              <b>Instituto Innova</b> · Odontologia e Saúde Integrada
+              Organizador visual de rotinas<br />
+              <b>{marca().nome}</b>{marca().rodape ? ` · ${marca().rodape}` : ""}
             </span>
           </div>
         </div>
@@ -2048,11 +2049,11 @@ export default function App() {
           </button>
 
           <div className="institucional">
-            <LogoInnova tamanho="medio" />
+            <LogoMarca tamanho="medio" />
             <p>
-              Esta aplicação foi desenvolvida pelo Instituto Innova como ferramenta de
-              apoio ao desenvolvimento de crianças atípicas. Ela organiza e estimula a rotina,
-              mas não substitui o acompanhamento de profissionais de saúde e educação.
+              O {marca().nome} organiza e estimula a rotina diária como apoio ao
+              desenvolvimento. Ele não substitui o acompanhamento de profissionais de
+              saúde e educação.
             </p>
           </div>
         </div>

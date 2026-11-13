@@ -1,7 +1,7 @@
 <?xml version='1.0' encoding='utf-8'?>
 <resources>
-    <string name="app_name">Rotina Innova</string>
-    <string name="title_activity_main">Rotina Innova</string>
-    <string name="package_name">br.com.institutoinnova.rotina</string>
-    <string name="custom_url_scheme">br.com.institutoinnova.rotina</string>
+    <string name="app_name">Combinado</string>
+    <string name="title_activity_main">Combinado</string>
+    <string name="package_name">br.com.combinado.app</string>
+    <string name="custom_url_scheme">br.com.combinado.app</string>
 </resources>

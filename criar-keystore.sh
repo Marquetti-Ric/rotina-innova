@@ -6,7 +6,7 @@
 # atualizações assinadas como se fosse o Instituto.
 set -e
 
-ARQUIVO=rotina.keystore
+ARQUIVO=combinado.keystore
 ALIAS=rotina
 
 if [ -f "$ARQUIVO" ]; then
@@ -19,7 +19,7 @@ keytool -genkeypair -v \
   -keystore "$ARQUIVO" \
   -alias "$ALIAS" \
   -keyalg RSA -keysize 2048 -validity 10000 \
-  -dname "CN=Instituto Innova, OU=Rotina Innova, O=Instituto Innova, L=, ST=, C=BR"
+  -dname "CN=Combinado, OU=Combinado, O=Combinado, L=, ST=, C=BR"
 
 echo
 echo "==================================================================="
@@ -29,7 +29,7 @@ echo " por cima — as famílias teriam que desinstalar e perder os dados."
 echo "==================================================================="
 echo
 echo "Agora cadastre os quatro secrets em:"
-echo "  github.com/Marquetti-Ric/rotina-innova → Settings → Secrets and variables → Actions"
+echo "  github.com/Marquetti-Ric/combinado → Settings → Secrets and variables → Actions"
 echo
 echo "ANDROID_KEY_ALIAS      = $ALIAS"
 echo "ANDROID_STORE_PASSWORD = (a senha que você digitou)"

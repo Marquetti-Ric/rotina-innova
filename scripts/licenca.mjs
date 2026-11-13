@@ -1,15 +1,15 @@
 #!/usr/bin/env node
 /**
- * Gestão de licenças do Rotina Innova.
+ * Gestão de licenças do Combinado.
  *
  * O arquivo docs/licencas.json é PÚBLICO (servido pelo GitHub Pages).
  * Por isso ele guarda apenas o HASH SHA-256 do código, nunca o código em si:
  * de posse do arquivo ninguém consegue derivar um código válido.
  *
  * Uso:
- *   node scripts/licenca.mjs --acao liberar --apelido "Família A" --validade 2027-12-31
- *   node scripts/licenca.mjs --acao renovar --codigo INNV-XXXX-XXXX-XXXX --validade 2028-06-30
- *   node scripts/licenca.mjs --acao revogar --codigo INNV-XXXX-XXXX-XXXX
+ *   node scripts/licenca.mjs --acao liberar --apelido "Clínica A" --validade 2027-12-31
+ *   node scripts/licenca.mjs --acao renovar --codigo CMB-XXXX-XXXX-XXXX --validade 2028-06-30
+ *   node scripts/licenca.mjs --acao revogar --codigo CMB-XXXX-XXXX-XXXX
  *   node scripts/licenca.mjs --acao listar
  */
 import { createHash, randomInt } from 'node:crypto';
@@ -39,7 +39,7 @@ function gerarCodigo() {
   let miolo = '';
   for (let i = 0; i < 12; i++) miolo += ALFABETO[randomInt(ALFABETO.length)];
   // ~59 bits de entropia: inviável de adivinhar a partir dos hashes publicados.
-  return 'INNV-' + miolo.match(/.{1,4}/g).join('-');
+  return 'CMB-' + miolo.match(/.{1,4}/g).join('-');
 }
 
 function carregar() {
