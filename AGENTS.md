@@ -54,6 +54,28 @@ escolha manual, então ela abre amanhã e encontra o mesmo app.
 O consentimento vem antes da lista, em destaque. Sem aceite, a lista não abre.
 A criança nunca vê nenhuma dessas telas nem o nome de nenhuma condição.
 
+### "O que eu noto" não é triagem, e a distinção é o enquadramento
+
+O caderno de observação do responsável e o resumo que ele gera existem porque a
+família chega na consulta sem conseguir descrever o que vê. Eles **não**
+rastreiam, não pontuam, não comparam com norma e não concluem. Três regras:
+
+1. **Vocabulário de comportamento observável, nunca de sintoma.** "Som alto
+   incomodou" é o que o responsável viu; "hipersensibilidade auditiva" é
+   conclusão. Se uma etiqueta nova parecer nome de sintoma ou de condição, ela
+   não entra — há teste varrendo a lista.
+2. **O resumo não afirma a condição da criança**, mesmo com o perfil de apoio
+   preenchido. Ele diz o que o app está fazendo e o que a família observou; o
+   diagnóstico, quem conta é a família, com as palavras dela.
+3. **Sem total, média ou tendência.** Número que sobe sugere conclusão.
+
+Pela RDC 657/2022, software é dispositivo médico quando tem finalidade de
+prevenção, diagnóstico, tratamento ou reabilitação; fica de fora o que processa
+dados sem qualquer finalidade clínica diagnóstica. É nessa saída que o produto
+vive. Um teste de triagem dentro do app — ainda que com aviso de que só o
+especialista diagnostica — muda a finalidade e leva a registro, responsável
+técnico e custo. Não acrescentar sem decisão explícita e parecer.
+
 ### Mais quatro coisas que não se mexem
 
 - **A prancha fala sempre**, mesmo com a narração automática desligada no perfil
@@ -90,13 +112,13 @@ percebe e abandona.
 
 ```bash
 npm run build     # tem de passar sem avisos
-npm run teste     # 174 verificações, em cinco suítes
+npm run teste     # 225 verificações, em seis suítes
 ```
 
 As suítes, se precisar rodar uma só: `teste:fluxo` (ativação → níveis → rotina →
 atualização), `teste:contatos`, `teste:apoio` (a derivação dos ajustes),
-`teste:identificacao` (da tela ao app aplicando o perfil) e `teste:modulos`
-(prancha e sentimentos). São testes de renderização de verdade, com jsdom: o
+`teste:identificacao` (da tela ao app aplicando o perfil), `teste:modulos`
+(prancha e sentimentos) e `teste:notas` (o caderno e o resumo). São testes de renderização de verdade, com jsdom: o
 projeto já teve um erro de inicialização que passou pela checagem de sintaxe e
 só apareceu na tela.
 
@@ -115,6 +137,9 @@ src/contatos.js       → telefones, wa.me, discador, visibilidade
 src/Adultos.jsx       → "Meus adultos": a tela de pedir ajuda
 src/Prancha.jsx       → prancha de CAA, com o vocabulário-núcleo
 src/Sentimentos.jsx   → check-in de emoções e respiração
+src/notas.js          → caderno de observação e montagem do resumo
+src/Notas.jsx         → "O que eu noto"
+src/Relatorio.jsx     → o resumo para levar na consulta
 src/voz.js            → narração pelo sintetizador do aparelho
 src/avatar.jsx        → personagens da criança e carinhas dos adultos
 src/armazenamento.js  → Preferences do Capacitor, com queda para o navegador

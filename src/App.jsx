@@ -18,6 +18,9 @@ import {
 import { falar, calar } from "./voz.js";
 import Prancha from "./Prancha.jsx";
 import Sentimentos, { EMOCOES } from "./Sentimentos.jsx";
+import Notas from "./Notas.jsx";
+import Relatorio from "./Relatorio.jsx";
+import { PADRAO_NOTAS, carregarNotas, gravarNotas } from "./notas.js";
 
 /* ============================================================
    ROTINA — jogo de rotinas diárias para crianças com TEA
@@ -519,6 +522,46 @@ h1, h2, h3, .display { font-family: 'Baloo 2', ui-rounded, system-ui, sans-serif
 .rt.contraste .ficha { background: #FFD400; color: #000000; }
 .rt.contraste .btn-falar { background: #5BFF5B; color: #000000; border: 3px solid #FFFFFF; }
 .rt.contraste .prancha { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+
+/* ---------- o que eu noto ---------- */
+.tipos { display: flex; flex-wrap: wrap; gap: 7px; }
+.tipo { border: 2px solid rgba(36,64,60,.14); cursor: pointer; background: var(--papel);
+  color: var(--tinta-3); border-radius: 999px; padding: 10px 14px; min-height: 44px;
+  font-family: 'Baloo 2', sans-serif; font-size: 13.5px; font-weight: 700; }
+.tipo[data-on="1"] { border-color: var(--musgo); background: var(--musgo-2); color: var(--musgo); }
+.etiquetas { display: flex; flex-wrap: wrap; gap: 7px; }
+.etiqueta { border: 2px solid rgba(36,64,60,.12); cursor: pointer; background: var(--papel);
+  color: var(--tinta-3); border-radius: 14px; padding: 9px 12px; min-height: 44px;
+  font-family: 'Nunito', sans-serif; font-size: 13px; font-weight: 700; text-align: left; }
+.etiqueta[data-on="1"] { border-color: var(--folha); background: #EAF6F0; color: #1F4A43; }
+.campo.area { min-height: 84px; resize: vertical; line-height: 1.5; }
+.notas { display: flex; flex-direction: column; gap: 10px; }
+.nota { border: none; cursor: pointer; background: var(--papel); border-radius: 20px;
+  padding: 13px 15px; box-shadow: var(--sombra); display: flex; flex-direction: column;
+  gap: 8px; text-align: left; width: 100%; }
+.nota-topo { display: flex; align-items: center; gap: 9px; }
+.nota-tipo { font-size: 10.5px; font-weight: 800; border-radius: 999px; padding: 4px 10px;
+  text-transform: uppercase; letter-spacing: .04em; background: var(--musgo-2); color: var(--musgo); }
+.nota-tipo[data-cor="agua"] { background: #E4F1F8; color: #1F5674; }
+.nota-tipo[data-cor="coral"] { background: #FBEBEF; color: #8E3A4D; }
+.nota-tipo[data-cor="damasco"] { background: #FDF0E2; color: #8A5620; }
+.nota-dia { margin-left: auto; font-size: 12px; font-weight: 800; color: var(--tinta-3); }
+.nota-etiquetas { display: flex; flex-wrap: wrap; gap: 6px; }
+.nota-et { font-size: 12px; font-weight: 700; color: #1F4A43; background: #EAF6F0;
+  border-radius: 11px; padding: 5px 9px; }
+.nota-texto { font-size: 13.5px; font-weight: 600; color: var(--tinta); line-height: 1.5; }
+.periodos { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 7px;
+  background: rgba(255,255,255,.6); padding: 5px; border-radius: 999px; }
+.seg { border: none; cursor: pointer; border-radius: 999px; background: transparent;
+  color: var(--tinta-3); font-family: 'Baloo 2', sans-serif; font-size: 14px;
+  font-weight: 700; padding: 10px 4px; min-height: 44px; }
+.seg[data-on="1"] { background: var(--papel); color: var(--tinta);
+  box-shadow: 0 4px 12px -6px rgba(36,64,60,.4); }
+.campo-rot small { font-family: 'Nunito', sans-serif; text-transform: none; letter-spacing: 0;
+  font-weight: 700; opacity: .8; }
+.rt.contraste .nota, .rt.contraste .tipo, .rt.contraste .etiqueta, .rt.contraste .seg {
+  background: #000000; border: 3px solid #FFFFFF; box-shadow: none; color: #FFFFFF; }
+.rt.contraste .nota-et, .rt.contraste .nota-tipo { background: #1A1A1A; color: #FFD400; }
 
 .contagem { display: flex; flex-wrap: wrap; gap: 8px; }
 .conta-emo { display: flex; align-items: center; gap: 6px; background: var(--papel);
@@ -1614,6 +1657,7 @@ export default function App() {
   /* A frase que a criança montou na prancha, para o pedido de ajuda sair com
      as palavras dela em vez da mensagem padrão. */
   const [fraseDita, setFraseDita] = useState("");
+  const [notas, setNotas] = useState(PADRAO_NOTAS);
 
   const hojeStr = new Date().toISOString().slice(0, 10);
   const abertoEm = useRef(Date.now());
@@ -1630,6 +1674,7 @@ export default function App() {
         }
       } catch (e) {}
       try { setContatos(await carregarContatos()); } catch (e) {}
+      try { setNotas(await carregarNotas()); } catch (e) {}
       try {
         const a = await carregarApoio();
         /* O "modo calmo" nasceu como chave do estado do app, antes de existir
@@ -1665,7 +1710,8 @@ export default function App() {
       else if (fichaContato) setFichaContato(null);
       else if (tela === "editar") { setRascunho(null); setTela("rotinas"); }
       else if (pausa) setPausa(false);
-      else if (tela === "rotinas" || tela === "contatos" || tela === "apoio") setTela("pais");
+      else if (tela === "relatorio") setTela("notas");
+      else if (tela === "rotinas" || tela === "contatos" || tela === "apoio" || tela === "notas") setTela("pais");
       else if (tela === "prancha" || tela === "sentimentos") setTela("casa");
       else if (tela !== "casa") setTela("casa");
       else AppNativo.exitApp();
@@ -1686,6 +1732,13 @@ export default function App() {
   const salvarContatos = useCallback((novo) => {
     setContatos(novo);
     gravarContatos(novo);
+  }, []);
+
+  /* O caderno de observação: chave própria também. É registro sobre a
+     criança, feito pela família, e sai do aparelho só se ela copiar. */
+  const salvarNotas = useCallback((novo) => {
+    setNotas(novo);
+    gravarNotas(novo);
   }, []);
 
   /* O perfil de apoio também tem chave própria, e pelo mesmo motivo com mais
@@ -2555,6 +2608,9 @@ export default function App() {
           <button className="btn-plano" onClick={() => setTela("contatos")}>
             Adultos que a criança pode chamar
           </button>
+          <button className="btn-plano" onClick={() => setTela("notas")}>
+            O que eu noto, e o resumo para a consulta
+          </button>
           <button className="btn-plano" onClick={() => salvar({ ...d, hoje: [], dia: hojeStr })}>
             Liberar as rotinas de hoje de novo
           </button>
@@ -2591,6 +2647,16 @@ export default function App() {
             setTela("pais");
           }}
         />
+      )}
+
+      {/* ---------- O QUE EU NOTO ---------- */}
+      {tela === "notas" && (
+        <Notas notas={notas} aoSalvar={salvarNotas}
+          voltar={() => setTela("pais")} verRelatorio={() => setTela("relatorio")} />
+      )}
+
+      {tela === "relatorio" && (
+        <Relatorio estado={d} notas={notas} tarefas={lista} voltar={() => setTela("notas")} />
       )}
 
       {/* ---------- PAUSA DO CORPO ---------- */}
