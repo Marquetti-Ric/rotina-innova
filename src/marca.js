@@ -17,6 +17,10 @@ export const MARCA_PADRAO = {
   assinatura: 'Organizador visual de rotinas',
   rodape: '',
   destaque: null, // null = usa a cor do próprio app
+  // Telefone da recepção, se a clínica quiser aparecer na lista de contatos.
+  // Entra travado: o responsável não apaga no aparelho.
+  telefone: '',
+  telefoneWhatsapp: false,
 };
 
 let atual = { ...MARCA_PADRAO };

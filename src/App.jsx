@@ -4,6 +4,12 @@ import { KeepAwake } from "@capacitor-community/keep-awake";
 import { storage } from "./armazenamento";
 import { reprogramar, avisosLigados, definirAvisos } from "./notificacoes";
 import { marca } from "./marca";
+import { AVATARES, Avatar } from "./avatar.jsx";
+import Adultos from "./Adultos.jsx";
+import {
+  PADRAO_CONTATOS, carregarContatos, gravarContatos, novoContato, limpar as limparContato,
+  telefoneValido, exibir as exibirFone, visiveisParaCrianca, comClinica,
+} from "./contatos.js";
 
 /* ============================================================
    ROTINA — jogo de rotinas diárias para crianças com TEA
@@ -323,6 +329,68 @@ h1, h2, h3, .display { font-family: 'Baloo 2', ui-rounded, system-ui, sans-serif
 .num-linha .btn-mini { width: 40px; height: 44px; font-size: 20px; font-weight: 700; }
 .passo-edit { display: flex; gap: 8px; align-items: flex-start; margin-bottom: 7px; }
 .passo-edit .campo { font-size: 15px; padding: 11px 13px; }
+/* ---------- chamar um adulto ---------- */
+.chamar { position: fixed; right: 16px; bottom: 18px; z-index: 30; display: flex;
+  align-items: center; gap: 8px; border: none; cursor: pointer; background: var(--coral);
+  color: #fff; border-radius: 999px; padding: 13px 19px 13px 16px; min-height: 52px;
+  font-family: 'Baloo 2', sans-serif; font-size: 15.5px; font-weight: 700;
+  box-shadow: 0 10px 24px -8px rgba(36,64,60,.7); }
+.chamar:active { transform: scale(.96); }
+.chamar-barra { width: 42px; height: 42px; flex-shrink: 0; border: none; cursor: pointer;
+  border-radius: 14px; background: #FCEAEE; display: grid; place-items: center; }
+
+.adultos { display: flex; flex-direction: column; gap: 13px; }
+.pessoa { background: var(--papel); border-radius: var(--raio); padding: 13px 15px 15px;
+  box-shadow: var(--sombra); display: flex; flex-direction: column; gap: 11px; }
+.pessoa-topo { display: flex; align-items: center; gap: 13px; }
+.pessoa-txt { flex: 1; min-width: 0; }
+.pessoa-nome { font-family: 'Baloo 2', sans-serif; font-size: 20px; line-height: 1.15; }
+.pessoa-rel { font-size: 12px; font-weight: 800; color: var(--tinta-3);
+  text-transform: uppercase; letter-spacing: .05em; margin-top: 2px; }
+.pessoa-fone { font-size: 12.5px; font-weight: 800; color: var(--tinta-3); margin-top: 2px; }
+.pessoa-acoes { display: flex; gap: 10px; }
+.ac { flex: 1; border: none; cursor: pointer; border-radius: 19px; padding: 14px 10px;
+  display: flex; align-items: center; justify-content: center; gap: 8px; min-height: 54px;
+  font-family: 'Baloo 2', sans-serif; font-size: 16px; font-weight: 700; color: #15403A; }
+.ac:active { transform: scale(.97); }
+.ac-ligar { background: var(--folha); }
+.ac-zap { background: #8FCBE8; }
+.nv1 .ac { font-size: 18px; min-height: 60px; }
+.vazio-adultos { background: var(--papel); border-radius: var(--raio); padding: 26px 22px;
+  box-shadow: var(--sombra); display: flex; flex-direction: column; align-items: center;
+  gap: 9px; text-align: center; }
+
+.scrim { position: fixed; inset: 0; background: rgba(20,38,35,.45); z-index: 40; }
+.folha { position: fixed; left: 12px; right: 12px; bottom: 12px; z-index: 41; max-width: 436px;
+  margin: 0 auto; background: var(--papel); border-radius: 30px; padding: 20px 20px 18px;
+  box-shadow: 0 -6px 40px -10px rgba(20,38,35,.5); display: flex; flex-direction: column;
+  align-items: center; gap: 7px; text-align: center;
+  animation: sobe-folha calc(.3s * var(--t) + .01s) cubic-bezier(.2,.9,.3,1) both; }
+@keyframes sobe-folha { from { transform: translateY(26px); opacity: 0 } to { transform: none; opacity: 1 } }
+.folha-titulo { font-family: 'Baloo 2', sans-serif; font-size: 23px; line-height: 1.2; margin-top: 3px; }
+.folha-sub { font-size: 13.5px; font-weight: 700; color: var(--tinta-3); line-height: 1.45; }
+.folha-btns { display: flex; flex-direction: column; gap: 9px; width: 100%; margin-top: 7px; }
+.btn-sim { border: none; cursor: pointer; background: var(--folha); color: #15403A;
+  border-radius: 20px; padding: 16px; min-height: 56px; display: flex; align-items: center;
+  justify-content: center; gap: 9px; font-family: 'Baloo 2', sans-serif; font-size: 18px; font-weight: 700; }
+.btn-nao { border: none; cursor: pointer; background: var(--neblina); color: var(--tinta-3);
+  border-radius: 20px; padding: 14px; min-height: 50px;
+  font-family: 'Baloo 2', sans-serif; font-size: 16px; font-weight: 700; }
+.minis { display: flex; flex-wrap: wrap; gap: 9px 15px; border-top: 1px solid rgba(36,64,60,.09);
+  padding-top: 11px; }
+.mini-chave { display: flex; align-items: center; gap: 7px; font-size: 11.5px; font-weight: 800;
+  color: var(--tinta-3); }
+.chave.sm { width: 40px; height: 24px; }
+.chave.sm i { width: 18px; height: 18px; top: 3px; left: 3px; }
+.chave.sm[data-on="1"] i { left: 19px; }
+.trava { font-size: 10px; font-weight: 800; color: var(--musgo); background: var(--musgo-2);
+  border-radius: 999px; padding: 4px 10px; text-transform: uppercase; letter-spacing: .05em;
+  flex-shrink: 0; }
+.btn-add { width: 100%; border: 2.5px dashed rgba(47,107,98,.35); cursor: pointer;
+  background: transparent; color: var(--musgo); border-radius: 20px; padding: 14px; min-height: 52px;
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  font-family: 'Baloo 2', sans-serif; font-size: 15.5px; font-weight: 700; }
+
 .rt :focus-visible { outline: 3px solid var(--damasco); outline-offset: 3px; border-radius: 12px; }
 @media (prefers-reduced-motion: reduce) { .rt { --t: 0.001; } .rt * { animation-duration: .01ms !important; } }
 @media (max-width: 340px) { .grade { grid-template-columns: 1fr; } }
@@ -379,38 +447,6 @@ function LogoMarca({ tamanho = "medio" }) {
         </div>
       )}
     </div>
-  );
-}
-
-/* ================= personagens ================= */
-const AVATARES = [
-  { id: "a", pele: "#F0C39B", cabelo: "#4A3324", tipo: "curto" },
-  { id: "b", pele: "#8C5A3E", cabelo: "#241A14", tipo: "cacho" },
-  { id: "c", pele: "#F6D8BE", cabelo: "#D6A044", tipo: "longo" },
-  { id: "d", pele: "#C4855E", cabelo: "#2C2856", tipo: "coque" },
-];
-
-function Avatar({ id = "a", tam = 46 }) {
-  const a = AVATARES.find((x) => x.id === id) || AVATARES[0];
-  return (
-    <svg width={tam} height={tam} viewBox="0 0 48 48" aria-hidden="true">
-      <circle cx="24" cy="24" r="24" fill="#FFFFFF" />
-      <circle cx="24" cy="24" r="21" fill="#F0F7F5" />
-      {a.tipo === "longo" && <path d="M8 27c0-12 6-17 16-17s16 5 16 17v12H8z" fill={a.cabelo} />}
-      {a.tipo === "coque" && <circle cx="24" cy="7" r="6" fill={a.cabelo} />}
-      <circle cx="24" cy="25" r="13" fill={a.pele} />
-      {a.tipo === "curto" && <path d="M11 24a13 13 0 0 1 26 0c0-3-4-4-13-4s-13 1-13 4z" fill={a.cabelo} />}
-      {a.tipo === "cacho" && (
-        <g fill={a.cabelo}><circle cx="14" cy="20" r="6" /><circle cx="24" cy="16" r="7" /><circle cx="34" cy="20" r="6" /></g>
-      )}
-      {a.tipo === "longo" && <path d="M11 24a13 13 0 0 1 26 0c0-4-5-6-13-6s-13 2-13 6z" fill={a.cabelo} />}
-      {a.tipo === "coque" && <path d="M11 24a13 13 0 0 1 26 0c0-3-4-5-13-5s-13 2-13 5z" fill={a.cabelo} />}
-      <circle cx="19.5" cy="26" r="1.9" fill="#2B3A38" />
-      <circle cx="28.5" cy="26" r="1.9" fill="#2B3A38" />
-      <path d="M21 31c1.7 1.6 4.3 1.6 6 0" stroke="#2B3A38" strokeWidth="1.8" strokeLinecap="round" fill="none" />
-      <circle cx="15.5" cy="29.5" r="2.2" fill="#F0A0A8" opacity=".5" />
-      <circle cx="32.5" cy="29.5" r="2.2" fill="#F0A0A8" opacity=".5" />
-    </svg>
   );
 }
 
@@ -1373,6 +1409,8 @@ export default function App() {
   const [pulso, setPulso] = useState(false);
   const [faiscas, setFaiscas] = useState(0);
   const [modal, setModal] = useState(null);
+  const [contatos, setContatos] = useState(PADRAO_CONTATOS);
+  const [fichaContato, setFichaContato] = useState(null);
 
   const hojeStr = new Date().toISOString().slice(0, 10);
 
@@ -1387,6 +1425,7 @@ export default function App() {
           setD({ ...PADRAO, ...s, hoje: s.dia === hojeStr ? s.hoje || [] : [], dia: hojeStr });
         }
       } catch (e) {}
+      try { setContatos(await carregarContatos()); } catch (e) {}
       setCarregado(true);
       try { setAvisos(await avisosLigados()); } catch (e) {}
       const espera = calmo ? 700 : 2500;
@@ -1404,13 +1443,14 @@ export default function App() {
       if (festa) { setFesta(null); setTela("casa"); }
       else if (modal) setModal(null);
       else if (perguntaAuto) setPerguntaAuto(false);
+      else if (fichaContato) setFichaContato(null);
       else if (tela === "editar") { setRascunho(null); setTela("rotinas"); }
-      else if (tela === "rotinas") setTela("pais");
+      else if (tela === "rotinas" || tela === "contatos") setTela("pais");
       else if (tela !== "casa") setTela("casa");
       else AppNativo.exitApp();
     }).then((h) => { remover = () => h.remove(); }).catch(() => {});
     return () => { if (remover) remover(); };
-  }, [tela, festa, modal, perguntaAuto]);
+  }, [tela, festa, modal, perguntaAuto, fichaContato]);
 
   const salvar = useCallback((novo) => {
     setD(novo);
@@ -1420,7 +1460,17 @@ export default function App() {
     })();
   }, []);
 
+  /* Contatos moram numa chave própria: telefone é dado de outra pessoa, e a
+     chave separada deixa o apagamento ser uma operação só. */
+  const salvarContatos = useCallback((novo) => {
+    setContatos(novo);
+    gravarContatos(novo);
+  }, []);
+
   const N = NIVEIS[d.nivel || 2];
+  /* O botão de chamar só existe se houver alguém para chamar: um botão que não
+     faz nada é pior do que botão nenhum para quem está pedindo ajuda. */
+  const temAdultos = visiveisParaCrianca(comClinica(contatos, marca())).length > 0;
   const lista = todasTarefas(d);
   const tarefa = lista.find((t) => t.id === tarefaId);
   const passos = tarefa ? passosDe(tarefa, N.id) : [];
@@ -1609,7 +1659,18 @@ export default function App() {
               <b>{marca().nome}</b>{marca().rodape ? ` · ${marca().rodape}` : ""}
             </span>
           </div>
+
+          {temAdultos && (
+            <button className="chamar" onClick={() => setTela("adultos")}>
+              <Mao /> Chamar
+            </button>
+          )}
         </div>
+      )}
+
+      {/* ---------- MEUS ADULTOS ---------- */}
+      {tela === "adultos" && (
+        <Adultos contatos={contatos} nivel={N.id} voltar={() => setTela("casa")} />
       )}
 
       {/* ---------- TAREFA ---------- */}
@@ -1618,6 +1679,12 @@ export default function App() {
           <div className="barra">
             <button className="btn-x" onClick={() => setTela("casa")} aria-label="Voltar para a lista">✕</button>
             <span className="barra-titulo">{tarefa.nome}</span>
+            {/* Travar num passo é exatamente quando ela precisa de alguém. */}
+            {temAdultos && (
+              <button className="chamar-barra" onClick={() => setTela("adultos")} aria-label="Chamar um adulto">
+                <Mao tam={22} cor="#E8879B" />
+              </button>
+            )}
             <span className="contador">
               {N.listaLivre ? `${marcados.length}/${passos.length}` : `${passo + 1}/${passos.length}`}
             </span>
@@ -2035,6 +2102,9 @@ export default function App() {
           <button className="btn-plano" onClick={() => setTela("rotinas")}>
             Editar rotinas, horários e dias
           </button>
+          <button className="btn-plano" onClick={() => setTela("contatos")}>
+            Adultos que a criança pode chamar
+          </button>
           <button className="btn-plano" onClick={() => salvar({ ...d, hoje: [], dia: hojeStr })}>
             Liberar as rotinas de hoje de novo
           </button>
@@ -2057,6 +2127,152 @@ export default function App() {
             </p>
           </div>
         </div>
+      )}
+
+      {/* ---------- ADULTOS E CONTATOS (responsável) ---------- */}
+      {tela === "contatos" && (
+        <div className="tela">
+          <div className="barra">
+            <button className="btn-x" onClick={() => setTela("pais")} aria-label="Voltar">←</button>
+            <span className="barra-titulo">Adultos e contatos</span>
+            <span className="contador" />
+          </div>
+
+          <div className="aviso">
+            Os números ficam neste aparelho. Não vão para o servidor de licenças e não aparecem
+            no painel da clínica.
+          </div>
+
+          <div className="campo-rot" style={{ marginTop: 4 }}>Quem a criança pode chamar</div>
+          <div className="adultos">
+            {comClinica(contatos, marca()).lista.map((c) => (
+              <div className="pessoa" key={c.id}>
+                <div className="pessoa-topo">
+                  <Avatar id={c.avatar} tam={46} />
+                  <div className="pessoa-txt">
+                    <div className="linha-nome">
+                      {c.nome}{c.relacao ? <span className="pessoa-rel" style={{ display: "inline", marginLeft: 6 }}>{c.relacao}</span> : null}
+                    </div>
+                    <div className="pessoa-fone">{exibirFone(c.fone)}</div>
+                  </div>
+                  {c.fixo ? (
+                    <span className="trava">fixo</span>
+                  ) : (
+                    <button className="btn-mini" onClick={() => setFichaContato({ ...c })}
+                      aria-label={`Editar ${c.nome}`}>✎</button>
+                  )}
+                </div>
+                <div className="minis">
+                  {[
+                    ["ligar", "Ligar"],
+                    ["whatsapp", "WhatsApp"],
+                    ["sozinha", "Pode usar sozinha"],
+                  ].map(([k, rot]) => (
+                    <span className="mini-chave" key={k}>
+                      <button className="chave sm" data-on={c[k] ? 1 : 0} aria-pressed={!!c[k]}
+                        aria-label={`${rot} — ${c.nome}`} disabled={c.fixo}
+                        onClick={() => salvarContatos({
+                          ...contatos,
+                          lista: contatos.lista.map((x) => (x.id === c.id ? { ...x, [k]: !x[k] } : x)),
+                        })}><i /></button>
+                      {rot}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            ))}
+            {comClinica(contatos, marca()).lista.length === 0 && (
+              <p className="linha-desc">
+                Ninguém cadastrado ainda. Sem contatos, o botão de chamar não aparece para a criança.
+              </p>
+            )}
+          </div>
+
+          <button className="btn-add" style={{ marginTop: 13 }}
+            onClick={() => setFichaContato(novoContato())}>
+            + Adicionar adulto
+          </button>
+
+          <div className="campo-rot">Mensagem que vai pronta no WhatsApp</div>
+          <p className="linha-desc" style={{ marginBottom: 8 }}>
+            O texto chega digitado na conversa. Quem aperta enviar é quem está com o aparelho.
+          </p>
+          <input className="campo" value={contatos.mensagem} maxLength={60}
+            onChange={(e) => salvarContatos({ ...contatos, mensagem: e.target.value })} />
+
+          <div className="aviso" style={{ marginTop: 14 }}>
+            Ligar e abrir o WhatsApp são saídas do app. Por isso o {marca().nome} é classificado
+            4+ e fica fora da categoria infantil da App Store, que exige uma barreira de adulto
+            antes de qualquer link para fora — barreira que não faz sentido na frente de um
+            pedido de ajuda.
+          </div>
+        </div>
+      )}
+
+      {/* ---------- FICHA DE UM ADULTO ---------- */}
+      {fichaContato && (
+        <>
+          <div className="scrim" onClick={() => setFichaContato(null)} />
+          <div className="folha" style={{ textAlign: "left", alignItems: "stretch" }}>
+            <div className="campo-rot" style={{ marginTop: 0 }}>Como a criança chama</div>
+            <input className="campo" value={fichaContato.nome} maxLength={18} placeholder="Mamãe"
+              onChange={(e) => setFichaContato({ ...fichaContato, nome: e.target.value })} />
+
+            <div className="campo-rot">Quem é (só o responsável vê)</div>
+            <input className="campo" value={fichaContato.relacao} maxLength={18} placeholder="mãe"
+              onChange={(e) => setFichaContato({ ...fichaContato, relacao: e.target.value })} />
+
+            <div className="campo-rot">Telefone com DDD</div>
+            <input className="campo" value={fichaContato.fone} inputMode="tel" placeholder="11 98888-7777"
+              onChange={(e) => setFichaContato({ ...fichaContato, fone: e.target.value })} />
+            {fichaContato.fone && !telefoneValido(fichaContato.fone) && (
+              <p className="linha-desc" style={{ color: "var(--coral)", marginTop: 6 }}>
+                Faltam dígitos. Precisa ser DDD mais o número.
+              </p>
+            )}
+
+            <div className="campo-rot">Carinha</div>
+            <div className="escolha-avatar">
+              {AVATARES.map((a) => (
+                <button key={a.id} className="op-avatar" data-on={fichaContato.avatar === a.id ? 1 : 0}
+                  onClick={() => setFichaContato({ ...fichaContato, avatar: a.id })}
+                  aria-label={`Carinha ${a.id}`}>
+                  <Avatar id={a.id} tam={46} />
+                </button>
+              ))}
+            </div>
+
+            <div className="folha-btns" style={{ marginTop: 2 }}>
+              <button className="btn-plano" disabled={!telefoneValido(fichaContato.fone)}
+                onClick={() => {
+                  const c = limparContato(fichaContato);
+                  const existe = contatos.lista.some((x) => x.id === c.id);
+                  salvarContatos({
+                    ...contatos,
+                    lista: existe
+                      ? contatos.lista.map((x) => (x.id === c.id ? c : x))
+                      : [...contatos.lista, c],
+                  });
+                  setFichaContato(null);
+                }}>
+                Salvar
+              </button>
+              {contatos.lista.some((x) => x.id === fichaContato.id) && (
+                <button className="btn-plano fantasma"
+                  onClick={() => {
+                    salvarContatos({
+                      ...contatos,
+                      lista: contatos.lista.filter((x) => x.id !== fichaContato.id),
+                    });
+                    setFichaContato(null);
+                  }}>
+                  Tirar da lista
+                </button>
+              )}
+              <button className="btn-nao" onClick={() => setFichaContato(null)}>Cancelar</button>
+            </div>
+          </div>
+        </>
       )}
 
       {/* ---------- PERGUNTA DE AUTONOMIA (nível 3) ---------- */}
@@ -2126,6 +2342,18 @@ function Estrela({ tam = 20, cor = "#F2A65A" }) {
     <svg width={tam} height={tam} viewBox="0 0 24 24" aria-hidden="true">
       <path d="M12 2.6l2.7 5.9 6.4.7-4.8 4.3 1.3 6.3L12 16.6l-5.6 3.2 1.3-6.3-4.8-4.3 6.4-.7z"
         fill={cor} stroke={cor} strokeWidth="2.2" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+/* Duas mãos: um adulto grande e uma criança. Marca o botão de chamar. */
+function Mao({ tam = 21, cor = "#FFFFFF" }) {
+  return (
+    <svg width={tam} height={tam} viewBox="0 0 48 48" aria-hidden="true">
+      <circle cx="17" cy="14" r="7" fill={cor} />
+      <path d="M6 40c0-7 5-11 11-11s11 4 11 11z" fill={cor} />
+      <circle cx="34" cy="21" r="5.2" fill={cor} opacity=".72" />
+      <path d="M26 40c0-5 3.6-8 8-8s8 3 8 8z" fill={cor} opacity=".72" />
     </svg>
   );
 }
