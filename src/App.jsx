@@ -10,6 +10,12 @@ import {
   PADRAO_CONTATOS, carregarContatos, gravarContatos, novoContato, limpar as limparContato,
   telefoneValido, exibir as exibirFone, visiveisParaCrianca, comClinica,
 } from "./contatos.js";
+import Identificacao from "./Identificacao.jsx";
+import {
+  APOIO_PADRAO, carregarApoio, gravarApoio, apagarIdentificacao,
+  derivarAjustes, explicarAjustes, temIdentificacao, resumoApoio,
+} from "./apoio.js";
+import { falar, calar } from "./voz.js";
 
 /* ============================================================
    ROTINA — jogo de rotinas diárias para crianças com TEA
@@ -391,7 +397,124 @@ h1, h2, h3, .display { font-family: 'Baloo 2', ui-rounded, system-ui, sans-serif
   display: flex; align-items: center; justify-content: center; gap: 8px;
   font-family: 'Baloo 2', sans-serif; font-size: 15.5px; font-weight: 700; }
 
+/* ---------- identificação ---------- */
+.destaque { background: #FBF3DF; border: 2.5px solid #EBD79C; border-radius: 24px;
+  padding: 16px 17px; display: flex; flex-direction: column; gap: 9px; }
+.destaque-tit { font-family: 'Baloo 2', sans-serif; font-size: 17px; line-height: 1.25;
+  color: #6B5A2C; }
+.destaque p { font-size: 12.5px; font-weight: 700; line-height: 1.55; color: #7E6A3A; }
+.aceite { display: flex; align-items: flex-start; gap: 11px; background: rgba(255,255,255,.8);
+  border: none; border-radius: 17px; padding: 13px 14px; cursor: pointer; text-align: left;
+  width: 100%; min-height: 52px; }
+.aceite-txt { font-size: 13px; font-weight: 800; line-height: 1.45; color: #5C4D24; }
+.itens { display: flex; flex-direction: column; gap: 9px; }
+.opc { display: flex; align-items: center; gap: 12px; background: var(--papel);
+  border-radius: 19px; padding: 13px 15px; box-shadow: var(--sombra);
+  border: 2px solid transparent; cursor: pointer; text-align: left; width: 100%;
+  min-height: 52px; }
+.opc[data-on="1"] { border-color: var(--musgo); background: #F7FCFB; }
+.opc svg { flex-shrink: 0; }
+.opc-txt { flex: 1; min-width: 0; }
+.opc-nome { font-family: 'Baloo 2', sans-serif; font-size: 14.5px; line-height: 1.2;
+  display: block; }
+.opc-desc { font-size: 11.5px; font-weight: 700; color: var(--tinta-3); line-height: 1.45;
+  margin-top: 2px; display: block; }
+.niveis-tea { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 7px;
+  padding: 0 2px; }
+.nv-tea { border: 2.5px solid transparent; background: var(--neblina); border-radius: 17px;
+  padding: 11px 6px; cursor: pointer; font-family: 'Baloo 2', sans-serif; font-size: 14px;
+  font-weight: 700; color: var(--tinta-3); min-height: 62px; line-height: 1.2; }
+.nv-tea[data-on="1"] { border-color: var(--musgo); background: var(--musgo-2); color: var(--musgo); }
+.nv-tea small { display: block; font-family: 'Nunito', sans-serif; font-size: 10px;
+  font-weight: 800; margin-top: 3px; }
+.interesses { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+.interesse { border: 2.5px solid transparent; background: var(--papel); border-radius: 20px;
+  padding: 9px 6px 10px; box-shadow: var(--sombra); cursor: pointer; display: flex;
+  flex-direction: column; gap: 5px; min-height: 92px; }
+.interesse[data-on="1"] { border-color: var(--musgo); background: #F7FCFB; }
+.interesse-arte { border-radius: 14px; background: linear-gradient(170deg, #F3FAF8, #E4F0ED);
+  padding: 5px; }
+.interesse-arte svg { display: block; width: 100%; height: auto; }
+.interesse-nome { font-size: 11px; font-weight: 800; text-align: center; line-height: 1.2; }
+
+.deriv { background: var(--musgo-2); border-radius: 24px; padding: 16px 17px; }
+.deriv-tit { font-family: 'Baloo 2', sans-serif; font-size: 15px; color: var(--musgo);
+  margin-bottom: 10px; }
+.deriv-lista { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column;
+  gap: 9px; }
+.deriv-lista li { display: flex; align-items: baseline; gap: 9px; }
+.d-txt { flex: 1; font-size: 13px; font-weight: 700; color: #23453F; line-height: 1.4; }
+.d-tag { flex-shrink: 0; font-size: 9.5px; font-weight: 800; color: var(--musgo);
+  background: rgba(255,255,255,.8); border-radius: 999px; padding: 3px 8px;
+  text-transform: uppercase; letter-spacing: .04em; }
+.d-tag[data-manual="1"] { background: var(--damasco); color: #5A3A12; }
+.apagar { background: #FBEEEC; border-radius: 24px; padding: 15px 16px; display: flex;
+  flex-direction: column; gap: 10px; }
+.btn-apagar { border: 2.5px solid #E3B6B0; cursor: pointer; background: rgba(255,255,255,.75);
+  color: #A24C44; border-radius: 18px; padding: 14px; min-height: 52px;
+  font-family: 'Baloo 2', sans-serif; font-size: 15.5px; font-weight: 700; }
+.apagar p { font-size: 11.5px; font-weight: 700; color: #8A5A54; line-height: 1.5; }
+.selo-apoio { font-size: 10.5px; font-weight: 800; color: var(--musgo); background: var(--musgo-2);
+  border-radius: 999px; padding: 4px 10px; text-transform: uppercase; letter-spacing: .04em; }
+
+/* ---------- faixa de antecipação ---------- */
+.antecipa { display: flex; align-items: center; gap: 8px; background: rgba(255,255,255,.72);
+  border-radius: 17px; padding: 10px 14px; font-size: 13.5px; font-weight: 800; }
+.antecipa-rot { color: var(--tinta-3); font-size: 11px; font-weight: 800;
+  text-transform: uppercase; letter-spacing: .05em; flex-shrink: 0; }
+.antecipa b { font-family: 'Baloo 2', sans-serif; font-weight: 700; font-size: 14px;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.antecipa-seta { color: var(--tinta-3); flex-shrink: 0; }
+
+.item-voz { width: 40px; height: 40px; flex-shrink: 0; border-radius: 13px; background: var(--musgo-2);
+  display: grid; place-items: center; cursor: pointer; }
+.item-voz:active { transform: scale(.93); }
+
+.btn-pausa { border: none; cursor: pointer; background: var(--folha); color: #15403A;
+  border-radius: 19px; padding: 14px; min-height: 52px;
+  font-family: 'Baloo 2', sans-serif; font-size: 16px; font-weight: 700; }
+.btn-pausa:active { transform: scale(.97); }
+
+/* ---------- leitura ampliada ---------- */
+.rt.leitura { font-size: 112%; }
+.rt.leitura .passo-titulo { font-size: 28px; }
+.rt.leitura .passo-dica { font-size: 17px; line-height: 1.6; }
+.rt.leitura .cartao-nome { font-size: 17.5px; }
+.rt.leitura .linha-desc { font-size: 13.5px; line-height: 1.55; }
+
+/* ---------- alto contraste ----------
+   Não é a mesma tela mais escura: é outra paleta, de cores puras, com
+   contorno em tudo que se toca. Vence a cor de destaque da clínica — a
+   acessibilidade não cede para a marca. */
+.rt.contraste { --papel: #000000; --neblina: #000000; --musgo: #FFD400;
+  --musgo-2: #1A1A1A; --tinta: #FFFFFF; --tinta-3: #FFD400; --folha: #5BFF5B;
+  --damasco: #FFD400; --coral: #FF9BB0; --lilas: #C9BBFF; --creme: #000000;
+  --sombra: none;
+  background: #000000; font-size: 118%; }
+.rt.contraste .tela > * { color: #FFFFFF; }
+.rt.contraste .cartao, .rt.contraste .linha, .rt.contraste .pessoa,
+.rt.contraste .palco, .rt.contraste .folha, .rt.contraste .pote,
+.rt.contraste .btn-rodape, .rt.contraste .btn-x, .rt.contraste .aba,
+.rt.contraste .campo, .rt.contraste .btn-eng, .rt.contraste .chamar-barra {
+  background: #000000; border: 3px solid #FFFFFF; box-shadow: none; }
+.rt.contraste .aba[data-on="1"] { background: #FFD400; color: #000000; border-color: #FFD400; }
+.rt.contraste .cartao-arte, .rt.contraste .quadro { background: #FFFFFF;
+  outline: 3px solid #FFFFFF; }
+.rt.contraste .cartao-rodape, .rt.contraste .cartao-hora { color: #00E5FF; }
+.rt.contraste .btn-feito, .rt.contraste .btn-plano, .rt.contraste .btn-sim,
+.rt.contraste .btn-pausa, .rt.contraste .ac-ligar {
+  background: #5BFF5B; color: #000000; border: 3px solid #FFFFFF; box-shadow: none; }
+.rt.contraste .ac-zap { background: #00E5FF; color: #000000; border: 3px solid #FFFFFF; }
+.rt.contraste .btn-nao { background: #000000; color: #FFFFFF; border: 3px solid #FFFFFF; }
+.rt.contraste .chamar { background: #FF9BB0; color: #000000; border: 3px solid #FFFFFF; }
+.rt.contraste .antecipa { background: #000000; border: 3px solid #FFFFFF; }
+.rt.contraste .antecipa-rot, .rt.contraste .antecipa-seta { color: #FFD400; }
+.rt.contraste .selo-nivel { background: #1A1A1A; color: #FFD400; border: 2px solid #FFD400; }
+.rt.contraste .trilha svg circle { stroke: #FFFFFF; stroke-width: 2; }
+.rt.contraste .aviso { background: #1A1A1A; color: #FFFFFF; border: 3px solid #FFD400; }
+
 .rt :focus-visible { outline: 3px solid var(--damasco); outline-offset: 3px; border-radius: 12px; }
+.rt.contraste :focus-visible { outline: 4px solid #00E5FF; }
 @media (prefers-reduced-motion: reduce) { .rt { --t: 0.001; } .rt * { animation-duration: .01ms !important; } }
 @media (max-width: 340px) { .grade { grid-template-columns: 1fr; } }
 `;
@@ -1411,8 +1534,12 @@ export default function App() {
   const [modal, setModal] = useState(null);
   const [contatos, setContatos] = useState(PADRAO_CONTATOS);
   const [fichaContato, setFichaContato] = useState(null);
+  const [apoio, setApoio] = useState(APOIO_PADRAO);
+  const [pausa, setPausa] = useState(false);
+  const [pausaIdx, setPausaIdx] = useState(0);
 
   const hojeStr = new Date().toISOString().slice(0, 10);
+  const abertoEm = useRef(Date.now());
 
   useEffect(() => {
     (async () => {
@@ -1426,8 +1553,23 @@ export default function App() {
         }
       } catch (e) {}
       try { setContatos(await carregarContatos()); } catch (e) {}
+      try {
+        const a = await carregarApoio();
+        /* O "modo calmo" nasceu como chave do estado do app, antes de existir
+           perfil de apoio. Agora o modo calmo tem uma fonte só — os ajustes —
+           então a escolha antiga do responsável sobe para lá, uma vez. */
+        if (calmo && !("calmo" in (a.manual || {}))) {
+          const migrado = { ...a, manual: { ...(a.manual || {}), calmo: true } };
+          setApoio(migrado);
+          gravarApoio(migrado);
+        } else {
+          setApoio(a);
+        }
+        calmo = derivarAjustes(a).calmo || calmo;
+      } catch (e) {}
       setCarregado(true);
       try { setAvisos(await avisosLigados()); } catch (e) {}
+      /* A abertura também é animação: em modo calmo ela passa rápido. */
       const espera = calmo ? 700 : 2500;
       setTimeout(() => setAbertura("saindo"), espera);
       setTimeout(() => setAbertura("oculta"), espera + 600);
@@ -1445,12 +1587,13 @@ export default function App() {
       else if (perguntaAuto) setPerguntaAuto(false);
       else if (fichaContato) setFichaContato(null);
       else if (tela === "editar") { setRascunho(null); setTela("rotinas"); }
-      else if (tela === "rotinas" || tela === "contatos") setTela("pais");
+      else if (pausa) setPausa(false);
+      else if (tela === "rotinas" || tela === "contatos" || tela === "apoio") setTela("pais");
       else if (tela !== "casa") setTela("casa");
       else AppNativo.exitApp();
     }).then((h) => { remover = () => h.remove(); }).catch(() => {});
     return () => { if (remover) remover(); };
-  }, [tela, festa, modal, perguntaAuto, fichaContato]);
+  }, [tela, festa, modal, perguntaAuto, fichaContato, pausa]);
 
   const salvar = useCallback((novo) => {
     setD(novo);
@@ -1467,7 +1610,40 @@ export default function App() {
     gravarContatos(novo);
   }, []);
 
-  const N = NIVEIS[d.nivel || 2];
+  /* O perfil de apoio também tem chave própria, e pelo mesmo motivo com mais
+     força: é informação de saúde de criança. Apagar tem de ser uma operação
+     só, sem arrastar o resto do estado. */
+  const salvarApoio = useCallback((novo) => {
+    setApoio(novo);
+    gravarApoio(novo);
+  }, []);
+
+  /* Liga ou desliga um ajuste à mão. Vira escolha do responsável e passa a
+     vencer a derivação, hoje e depois de qualquer edição do perfil. */
+  const mexerAjuste = useCallback((chave, valor) => {
+    setApoio((a) => {
+      const novo = { ...a, manual: { ...(a.manual || {}), [chave]: valor } };
+      gravarApoio(novo);
+      return novo;
+    });
+  }, []);
+
+  /* Os ajustes do perfil de apoio. Nenhuma tela consulta a lista de condições:
+     tudo que a interface vê é este objeto. */
+  const aj = derivarAjustes(apoio);
+
+  /* O nível por idade continua definindo o texto e o tamanho dos passos. O
+     perfil de apoio mexe na estrutura e na recompensa, por cima dele. */
+  const NBase = NIVEIS[d.nivel || 2];
+  const N = {
+    ...NBase,
+    /* Um passo por tela derruba a lista livre do nível 3: a criança recebe a
+       trilha guiada com o texto dela, não o texto de uma criança menor. */
+    listaLivre: NBase.listaLivre && !aj.passoUnico,
+    porPasso: aj.reforcoDenso ? NBase.porPasso * 2 : NBase.porPasso,
+    bonus: aj.reforcoDenso ? NBase.bonus * 2 : NBase.bonus,
+  };
+
   /* O botão de chamar só existe se houver alguém para chamar: um botão que não
      faz nada é pior do que botão nenhum para quem está pedindo ajuda. */
   const temAdultos = visiveisParaCrianca(comClinica(contatos, marca())).length > 0;
@@ -1480,6 +1656,19 @@ export default function App() {
     setTarefaId(id); setPasso(0); setMarcados([]); setCronometro(null); setEscolhido(null);
     setPerguntaAuto(false); setTela("tarefa");
   }
+
+  /* A voz lê o passo que está na tela. Tudo que ela fala também está escrito:
+     a narração é apoio, nunca o único caminho. */
+  const passoAtual = passos[passo];
+  useEffect(() => {
+    if (!aj.voz || tela !== "tarefa" || N.listaLivre || !passoAtual) return;
+    falar(passoAtual.d ? `${passoAtual.t}. ${passoAtual.d}` : passoAtual.t);
+  }, [aj.voz, tela, N.listaLivre, passoAtual?.t, passoAtual?.d]);
+
+  /* Sair da tarefa cala a voz: ninguém quer ouvir o passo anterior na casa. */
+  useEffect(() => {
+    if (tela !== "tarefa") calar();
+  }, [tela]);
 
   function premiar(extra) {
     setPulso(true); setTimeout(() => setPulso(false), 500);
@@ -1525,13 +1714,26 @@ export default function App() {
     }
   }
 
-  const daVez = lista
+  const doMomento = lista
     .filter((t) => t.momento === momento && !t.oculta)
     .filter((t) => !t.dias || t.dias.includes(diaSemana))
     .filter((t) => !t.prova || d.prova)
     .sort(ordemHorario);
+
+  /* Limite de cartões por tela: as pendentes primeiro, para a tela cortar o
+     que já foi feito antes de cortar o que falta fazer. */
+  const daVez = aj.cartoes
+    ? [
+      ...doMomento.filter((t) => !d.hoje.includes(t.id)),
+      ...doMomento.filter((t) => d.hoje.includes(t.id)),
+    ].slice(0, aj.cartoes)
+    : doMomento;
+
   const proxima = daVez.find((t) => !d.hoje.includes(t.id));
-  const cls = "rt nv" + N.id + (d.calmo ? " calmo" : "");
+  const cls = "rt nv" + N.id
+    + (aj.calmo ? " calmo" : "")
+    + (aj.leitura ? " leitura" : "")
+    + (aj.contraste ? " contraste" : "");
 
   const Abertura = abertura !== "oculta" && (
     <div className="abertura" data-saindo={abertura === "saindo" ? 1 : 0} aria-hidden="true">
@@ -1616,6 +1818,12 @@ export default function App() {
             ))}
           </div>
 
+          {aj.pausaCorpo && (
+            <button className="btn-pausa" onClick={() => setPausa(true)}>
+              Preciso mexer o corpo
+            </button>
+          )}
+
           {d.prova && momento === "noite" && (
             <div className="faixa-prova">📚 Semana de prova — o estudo entra na rotina</div>
           )}
@@ -1692,6 +1900,12 @@ export default function App() {
 
           {!N.listaLivre && (
             <>
+              {aj.antecipacao && passos[passo] && (
+                <Antecipacao
+                  agora={passos[passo].t}
+                  depois={passos[passo + 1] ? passos[passo + 1].t : "acabou"}
+                />
+              )}
               <Trilha total={passos.length} atual={passo} avatarId={d.avatar} />
               <div className="palco">
                 <div className="quadro passo-troca" key={passo}><Cena nome={passos[passo].arte} /></div>
@@ -1747,6 +1961,22 @@ export default function App() {
                     onClick={() => alternar(i)}>
                     <span className="item-cx">{marcados.includes(i) ? "✓" : i + 1}</span>
                     <span className="item-txt"><b>{p.t}</b><small>{p.d}</small></span>
+                    {/* Na lista livre a voz não narra sozinha: seriam sete frases
+                        de uma vez. Cada passo tem o seu alto-falante, e quem
+                        decide quando ouvir é a criança. */}
+                    {aj.voz && (
+                      <span className="item-voz" role="button" tabIndex={0}
+                        aria-label={`Ouvir: ${p.t}`}
+                        onClick={(e) => { e.stopPropagation(); falar(p.d ? `${p.t}. ${p.d}` : p.t); }}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter" || e.key === " ") {
+                            e.stopPropagation(); e.preventDefault();
+                            falar(p.d ? `${p.t}. ${p.d}` : p.t);
+                          }
+                        }}>
+                        <Alto />
+                      </span>
+                    )}
                     {p.tempo && (
                       <span className="item-tempo" onClick={(e) => { e.stopPropagation(); setCronometro(cronometro === i ? null : i); }}>
                         {cronometro === i ? "parar" : `${p.tempo}s`}
@@ -2018,6 +2248,49 @@ export default function App() {
           </div>
 
           <div>
+            <div className="linha-nome" style={{ marginBottom: 8 }}>Perfil de apoio</div>
+            {temIdentificacao(apoio) ? (
+              <>
+                <div className="deriv" style={{ marginBottom: 11 }}>
+                  <div className="deriv-tit">
+                    {resumoApoio(apoio)}
+                    {apoio.sensorial !== "nenhum"
+                      ? ` · sensorial ${(SENSORIAL_NOMES[apoio.sensorial] || "").toLowerCase()}`
+                      : ""}
+                  </div>
+                  {explicarAjustes(apoio).length === 0 ? (
+                    <p className="opc-desc" style={{ margin: 0 }}>
+                      Nada muda no app com o que foi informado.
+                    </p>
+                  ) : (
+                    <ul className="deriv-lista">
+                      {explicarAjustes(apoio).map((l, i) => (
+                        <li key={i}>
+                          <span className="d-txt">{l.texto}</span>
+                          <span className="d-tag" data-manual={l.manual ? 1 : 0}>{l.origem}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
+                <button className="btn-plano" onClick={() => setTela("apoio")}>
+                  Rever ou apagar a identificação
+                </button>
+              </>
+            ) : (
+              <>
+                <p className="linha-desc" style={{ marginBottom: 10 }}>
+                  Se a criança tem uma atipicidade fechada por profissional, informar aqui faz o
+                  app ajustar linguagem, estímulo e ritmo. Fica só neste aparelho, e é opcional.
+                </p>
+                <button className="btn-plano" onClick={() => setTela("apoio")}>
+                  Informar o perfil de apoio
+                </button>
+              </>
+            )}
+          </div>
+
+          <div>
             <div className="linha-nome" style={{ marginBottom: 8 }}>Como a criança se chama</div>
             <input className="campo" value={d.nome} maxLength={14}
               onChange={(e) => salvar({ ...d, nome: e.target.value || "amigo" })} />
@@ -2041,8 +2314,9 @@ export default function App() {
                 <div className="linha-nome">Modo calmo</div>
                 <div className="linha-desc">Desliga animações, faíscas e confete.</div>
               </div>
-              <button className="chave" data-on={d.calmo ? 1 : 0} onClick={() => salvar({ ...d, calmo: !d.calmo })}
-                aria-pressed={d.calmo} aria-label="Modo calmo"><i /></button>
+              <button className="chave" data-on={aj.calmo ? 1 : 0}
+                onClick={() => mexerAjuste("calmo", !aj.calmo)}
+                aria-pressed={aj.calmo} aria-label="Modo calmo"><i /></button>
             </div>
             <div className="linha">
               <div className="linha-txt">
@@ -2066,6 +2340,27 @@ export default function App() {
               <button className="chave" data-on={d.som ? 1 : 0} onClick={() => salvar({ ...d, som: !d.som })}
                 aria-pressed={d.som} aria-label="Sons"><i /></button>
             </div>
+            {/* Estas quatro também são derivadas do perfil de apoio. Mexer aqui
+                vira escolha do responsável e passa a vencer a derivação. */}
+            {[
+              ["voz", "Ler os passos em voz alta", "A voz do aparelho narra o passo e a dica."],
+              ["leitura", "Texto ampliado", "Letra maior e mais espaçada em todo o app."],
+              ["contraste", "Alto contraste", "Fundo escuro, cores puras, contorno em tudo."],
+              ["antecipacao", "Faixa agora / depois", "Mostra o passo atual e o seguinte."],
+            ].map(([k, nome, desc]) => (
+              <div className="linha" key={k}>
+                <div className="linha-txt">
+                  <div className="linha-nome">
+                    {nome}
+                    {!(k in (apoio.manual || {})) && aj[k] ? <> <span className="selo-apoio">do perfil</span></> : null}
+                  </div>
+                  <div className="linha-desc">{desc}</div>
+                </div>
+                <button className="chave" data-on={aj[k] ? 1 : 0}
+                  onClick={() => mexerAjuste(k, !aj[k])}
+                  aria-pressed={!!aj[k]} aria-label={nome}><i /></button>
+              </div>
+            ))}
           </div>
 
           <div>
@@ -2111,7 +2406,7 @@ export default function App() {
           <button className="btn-plano fantasma"
             onClick={() => {
               if (modal === "zerar") {
-                salvar({ ...PADRAO, nome: d.nome, avatar: d.avatar, nivel: d.nivel, calmo: d.calmo, som: d.som, dia: hojeStr });
+                salvar({ ...PADRAO, nome: d.nome, avatar: d.avatar, nivel: d.nivel, som: d.som, dia: hojeStr });
                 setModal(null);
               } else setModal("zerar");
             }}>
@@ -2127,6 +2422,40 @@ export default function App() {
             </p>
           </div>
         </div>
+      )}
+
+      {/* ---------- IDENTIFICAÇÃO DA ATIPICIDADE ---------- */}
+      {tela === "apoio" && (
+        <Identificacao
+          apoio={apoio}
+          aoSair={() => setTela("pais")}
+          aoSalvar={(novo) => { salvarApoio(novo); setTela("pais"); }}
+          aoApagar={async (atual) => {
+            const limpo = await apagarIdentificacao(atual);
+            setApoio(limpo);
+            setTela("pais");
+          }}
+        />
+      )}
+
+      {/* ---------- PAUSA DO CORPO ---------- */}
+      {pausa && (
+        <>
+          <div className="scrim" onClick={() => setPausa(false)} />
+          <div className="folha" role="dialog" aria-label="Pausa do corpo">
+            <Mao tam={56} cor="#78BE9B" />
+            <h2 className="folha-titulo">{PAUSAS_CORPO[pausaIdx].nome}</h2>
+            <p className="folha-sub" style={{ fontSize: 16 }}>{PAUSAS_CORPO[pausaIdx].dica}</p>
+            <div className="folha-btns">
+              <button className="btn-sim" onClick={() => { setPausa(false); abertoEm.current = Date.now(); }}>
+                Já fiz
+              </button>
+              <button className="btn-nao" onClick={() => setPausaIdx((i) => (i + 1) % PAUSAS_CORPO.length)}>
+                Quero outra
+              </button>
+            </div>
+          </div>
+        </>
       )}
 
       {/* ---------- ADULTOS E CONTATOS (responsável) ---------- */}
@@ -2292,7 +2621,7 @@ export default function App() {
       {/* ---------- FESTA ---------- */}
       {festa && (
         <div className="festa" role="dialog" aria-label="Rotina concluída">
-          {N.confete && !d.calmo && Array.from({ length: 26 }, (_, i) => (
+          {N.confete && !aj.calmo && Array.from({ length: 26 }, (_, i) => (
             <span key={i} className="papelote" style={{
               left: `${(i * 3.8 + 3) % 97}%`,
               background: ["#F2A65A", "#78BE9B", "#E8879B", "#8E82D4", "#8FCBE8"][i % 5],
@@ -2307,6 +2636,14 @@ export default function App() {
             <p className="festa-texto" style={{ color: "var(--damasco)", fontFamily: "Baloo 2, sans-serif", fontSize: 19, marginTop: 10 }}>
               +{N.bonus} {N.moeda} · figurinha {festa.figurinha}
             </p>
+            {/* Bloco de foco: a pausa é oferecida ao terminar a tarefa, nunca
+                no meio dela — o app não interrompe quem está no passo 3 de 5. */}
+            {aj.minutosFoco > 0 && Date.now() - abertoEm.current > aj.minutosFoco * 60000 && (
+              <button className="btn-plano" style={{ background: "var(--folha)", color: "#15403A" }}
+                onClick={() => { setFesta(null); setTela("casa"); setPausa(true); }}>
+                Mexer o corpo antes de continuar
+              </button>
+            )}
             <button className="btn-plano" onClick={() => { setFesta(null); setTela("casa"); }}>
               Voltar para a rotina
             </button>
@@ -2345,6 +2682,42 @@ function Estrela({ tam = 20, cor = "#F2A65A" }) {
     </svg>
   );
 }
+
+/* A faixa "agora / depois". Serve a quem precisa saber o que vem em seguida
+   para conseguir começar — reduz imprevisibilidade, não é enfeite. */
+function Antecipacao({ agora, depois }) {
+  return (
+    <div className="antecipa">
+      <span className="antecipa-rot">agora</span>
+      <b>{agora}</b>
+      <span className="antecipa-seta" aria-hidden="true">→</span>
+      <span className="antecipa-rot">depois</span>
+      <b>{depois}</b>
+    </div>
+  );
+}
+
+/* Alto-falante: "toque para ouvir este passo". */
+function Alto({ tam = 19, cor = "#2F6B62" }) {
+  return (
+    <svg width={tam} height={tam} viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M4 9.5h3.5L13 5v14l-5.5-4.5H4z" fill={cor} />
+      <path d="M16.5 9a4.5 4.5 0 0 1 0 6" stroke={cor} strokeWidth="2.2" fill="none" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+const SENSORIAL_NOMES = {
+  nenhum: "sem alteração marcante", hiper: "hiper-reativo",
+  hipo: "hipo-reativo", misto: "misto",
+};
+
+const PAUSAS_CORPO = [
+  { nome: "Aperto forte", dica: "Junte as mãos e aperte enquanto conta até dez." },
+  { nome: "Cinco pulos", dica: "Pule cinco vezes, contando alto." },
+  { nome: "Abraço apertado", dica: "Abrace o seu corpo e aperte um pouquinho." },
+  { nome: "Empurrar a parede", dica: "Empurre a parede com as duas mãos, bem forte." },
+];
 
 /* Duas mãos: um adulto grande e uma criança. Marca o botão de chamar. */
 function Mao({ tam = 21, cor = "#FFFFFF" }) {

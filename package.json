@@ -10,7 +10,9 @@
     "preview": "vite preview",
     "teste:fluxo": "./node_modules/.bin/esbuild testes/fluxo.jsx --bundle --platform=node --format=esm --outfile=testes/f.mjs --packages=external --loader:.jsx=jsx --jsx=automatic --alias:@capacitor/app-launcher=./testes/falso-launcher.js && node testes/f.mjs",
     "teste:contatos": "./node_modules/.bin/esbuild testes/contatos.jsx --bundle --platform=node --format=esm --outfile=testes/c.mjs --packages=external --loader:.jsx=jsx --jsx=automatic --alias:@capacitor/app-launcher=./testes/falso-launcher.js && node testes/c.mjs",
-    "teste": "npm run teste:fluxo && npm run teste:contatos"
+    "teste": "npm run teste:fluxo && npm run teste:contatos && npm run teste:apoio && npm run teste:identificacao",
+    "teste:apoio": "./node_modules/.bin/esbuild testes/apoio.jsx --bundle --platform=node --format=esm --outfile=testes/a.mjs --packages=external --loader:.jsx=jsx --jsx=automatic --alias:@capacitor/app-launcher=./testes/falso-launcher.js && node testes/a.mjs",
+    "teste:identificacao": "./node_modules/.bin/esbuild testes/identificacao.jsx --bundle --platform=node --format=esm --outfile=testes/i.mjs --packages=external --loader:.jsx=jsx --jsx=automatic --alias:@capacitor/app-launcher=./testes/falso-launcher.js && node testes/i.mjs"
   },
   "dependencies": {
     "@capacitor-community/keep-awake": "^8.0.1",
