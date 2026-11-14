@@ -117,6 +117,10 @@ export function derivarAjustes(a = APOIO_PADRAO) {
     semExigenciaOral: p.comunicacao === 'prancha',
     /* contraste: paleta de alto contraste. */
     contraste: p.visao === 'baixa',
+    /* sentimentos: o check-in de emoções e a respiração. Módulo à parte, não
+       liga sozinho — a não ser quando a ansiedade foi informada, que é
+       exatamente o caso em que ter onde dizer "estou com medo" ajuda. */
+    sentimentos: tem('ansiedade'),
     interesse: p.interesse || '',
   };
 
@@ -175,6 +179,7 @@ export function explicarAjustes(a = APOIO_PADRAO) {
   põe('prancha', 'Prancha de comunicação a um toque, em qualquer tela', 'como a criança se comunica');
   põe('semExigenciaOral', 'Nenhuma atividade cobra fala oral', 'como a criança se comunica');
   põe('contraste', 'Alto contraste: fundo escuro, cores puras, texto maior', 'baixa visão');
+  põe('sentimentos', 'Atalho "como eu estou", com respiração', 'ansiedade');
 
   return linhas;
 }

@@ -16,6 +16,8 @@ import {
   derivarAjustes, explicarAjustes, temIdentificacao, resumoApoio,
 } from "./apoio.js";
 import { falar, calar } from "./voz.js";
+import Prancha from "./Prancha.jsx";
+import Sentimentos, { EMOCOES } from "./Sentimentos.jsx";
 
 /* ============================================================
    ROTINA — jogo de rotinas diárias para crianças com TEA
@@ -336,12 +338,15 @@ h1, h2, h3, .display { font-family: 'Baloo 2', ui-rounded, system-ui, sans-serif
 .passo-edit { display: flex; gap: 8px; align-items: flex-start; margin-bottom: 7px; }
 .passo-edit .campo { font-size: 15px; padding: 11px 13px; }
 /* ---------- chamar um adulto ---------- */
-.chamar { position: fixed; right: 16px; bottom: 18px; z-index: 30; display: flex;
-  align-items: center; gap: 8px; border: none; cursor: pointer; background: var(--coral);
-  color: #fff; border-radius: 999px; padding: 13px 19px 13px 16px; min-height: 52px;
+.fixos { position: fixed; right: 16px; bottom: 18px; z-index: 30; display: flex;
+  flex-direction: column; align-items: flex-end; gap: 9px; }
+.chamar { display: flex; align-items: center; gap: 8px; border: none; cursor: pointer;
+  background: var(--coral); color: #fff; border-radius: 999px;
+  padding: 13px 19px 13px 16px; min-height: 52px;
   font-family: 'Baloo 2', sans-serif; font-size: 15.5px; font-weight: 700;
   box-shadow: 0 10px 24px -8px rgba(36,64,60,.7); }
 .chamar:active { transform: scale(.96); }
+.prancha-btn { background: var(--musgo); }
 .chamar-barra { width: 42px; height: 42px; flex-shrink: 0; border: none; cursor: pointer;
   border-radius: 14px; background: #FCEAEE; display: grid; place-items: center; }
 
@@ -470,10 +475,79 @@ h1, h2, h3, .display { font-family: 'Baloo 2', ui-rounded, system-ui, sans-serif
   display: grid; place-items: center; cursor: pointer; }
 .item-voz:active { transform: scale(.93); }
 
-.btn-pausa { border: none; cursor: pointer; background: var(--folha); color: #15403A;
-  border-radius: 19px; padding: 14px; min-height: 52px;
-  font-family: 'Baloo 2', sans-serif; font-size: 16px; font-weight: 700; }
-.btn-pausa:active { transform: scale(.97); }
+.atalhos { display: flex; gap: 10px; }
+.btn-pausa, .btn-sentir { flex: 1; border: none; cursor: pointer; border-radius: 19px;
+  padding: 14px 10px; min-height: 52px;
+  font-family: 'Baloo 2', sans-serif; font-size: 15.5px; font-weight: 700; }
+.btn-pausa { background: var(--folha); color: #15403A; }
+.btn-sentir { background: var(--coral); color: #4A1F2A; }
+.btn-pausa:active, .btn-sentir:active { transform: scale(.97); }
+
+/* ---------- prancha de comunicação ---------- */
+.tira { min-height: 66px; background: var(--papel); border-radius: 22px;
+  box-shadow: var(--sombra); padding: 11px 13px; display: flex; flex-wrap: wrap;
+  gap: 7px; align-items: center; }
+.tira-vazia { font-size: 13.5px; font-weight: 700; color: var(--tinta-3); }
+.ficha { background: var(--musgo-2); color: var(--musgo); border-radius: 13px;
+  padding: 7px 12px; font-family: 'Baloo 2', sans-serif; font-size: 16px; font-weight: 700; }
+.pr-acoes { display: flex; gap: 9px; }
+.btn-falar { flex: 1; border: none; cursor: pointer; background: var(--musgo); color: #fff;
+  border-radius: 19px; padding: 14px; min-height: 52px; display: flex; align-items: center;
+  justify-content: center; gap: 9px; font-family: 'Baloo 2', sans-serif;
+  font-size: 16px; font-weight: 700; }
+.btn-mini-pr { width: 52px; min-height: 52px; border: none; cursor: pointer;
+  border-radius: 19px; background: rgba(255,255,255,.85); color: var(--tinta-3);
+  font-size: 19px; display: grid; place-items: center; }
+.btn-falar:disabled, .btn-mini-pr:disabled { opacity: .45; cursor: default; }
+.btn-levar { border: 2.5px solid var(--musgo); cursor: pointer; background: var(--musgo-2);
+  color: var(--musgo); border-radius: 19px; padding: 13px; min-height: 50px;
+  font-family: 'Baloo 2', sans-serif; font-size: 15px; font-weight: 700; }
+.prancha { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
+.cel { border: none; cursor: pointer; background: var(--papel); border-radius: 18px;
+  padding: 6px 5px 8px; box-shadow: var(--sombra); display: flex; flex-direction: column;
+  gap: 4px; min-height: 44px; }
+.cel:active { transform: scale(.95); }
+.cel-arte { border-radius: 13px; overflow: hidden; padding: 6px;
+  background: linear-gradient(170deg, #F3FAF8, #E4F0ED); }
+.cel-arte svg { display: block; width: 100%; height: auto; }
+.cel-nome { font-size: 10.5px; font-weight: 800; text-align: center; line-height: 1.15; }
+.pr-pe { font-size: 11.5px; font-weight: 700; color: var(--tinta-3); line-height: 1.5;
+  text-align: center; }
+.rt.contraste .tira, .rt.contraste .cel, .rt.contraste .btn-mini-pr {
+  background: #000000; border: 3px solid #FFFFFF; box-shadow: none; }
+.rt.contraste .cel-arte { background: #FFFFFF; }
+.rt.contraste .ficha { background: #FFD400; color: #000000; }
+.rt.contraste .btn-falar { background: #5BFF5B; color: #000000; border: 3px solid #FFFFFF; }
+.rt.contraste .prancha { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+
+.contagem { display: flex; flex-wrap: wrap; gap: 8px; }
+.conta-emo { display: flex; align-items: center; gap: 6px; background: var(--papel);
+  border-radius: 999px; padding: 6px 13px 6px 7px; box-shadow: var(--sombra);
+  font-size: 12.5px; font-weight: 700; color: var(--tinta-3); }
+.conta-emo b { font-family: 'Baloo 2', sans-serif; font-size: 15px; color: var(--tinta); }
+
+/* ---------- sentimentos ---------- */
+.emocoes { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 11px; }
+.emo { border: 2.5px solid transparent; cursor: pointer; background: var(--papel);
+  border-radius: 24px; padding: 9px 8px 11px; box-shadow: var(--sombra);
+  display: flex; flex-direction: column; gap: 6px; }
+.emo[data-on="1"] { border-color: var(--musgo); background: var(--musgo-2); }
+.emo:active { transform: scale(.96); }
+.emo-arte svg { display: block; width: 100%; height: auto; }
+.emo-nome { font-family: 'Baloo 2', sans-serif; font-size: 13.5px; text-align: center;
+  line-height: 1.15; }
+.resposta { background: var(--papel); border-radius: var(--raio); padding: 17px;
+  box-shadow: var(--sombra); display: flex; flex-direction: column; gap: 10px; }
+.resposta p { font-size: 14.5px; font-weight: 700; line-height: 1.5; }
+.bola-ar { width: 150px; height: 150px; margin: 6px auto 12px; border-radius: 50%;
+  background: var(--coral); transform: scale(.66);
+  transition: transform calc(3.6s * var(--t) + .01s) ease-in-out; }
+.bola-ar[data-cheia="1"] { transform: scale(1); }
+.ar-titulo { font-family: 'Baloo 2', sans-serif; font-size: 24px; }
+.ar-conta { font-family: 'Baloo 2', sans-serif; font-size: 40px; color: var(--coral); }
+.rt.contraste .emo, .rt.contraste .resposta { background: #000000;
+  border: 3px solid #FFFFFF; box-shadow: none; }
+.rt.contraste .emo[data-on="1"] { border-color: #FFD400; }
 
 /* ---------- leitura ampliada ---------- */
 .rt.leitura { font-size: 112%; }
@@ -1443,7 +1517,7 @@ function Ampulheta({ segundos, chave, som }) {
 const PADRAO = {
   nome: "amigo", avatar: "a", nivel: null, estrelas: 0,
   feitos: {}, autonomia: {}, hoje: [], dia: "", calmo: false, som: true,
-  ajustes: {}, custom: [], prova: false,
+  ajustes: {}, custom: [], prova: false, diario: [],
 };
 
 /* A lista viva de tarefas: as de fábrica com os ajustes do responsável
@@ -1537,6 +1611,9 @@ export default function App() {
   const [apoio, setApoio] = useState(APOIO_PADRAO);
   const [pausa, setPausa] = useState(false);
   const [pausaIdx, setPausaIdx] = useState(0);
+  /* A frase que a criança montou na prancha, para o pedido de ajuda sair com
+     as palavras dela em vez da mensagem padrão. */
+  const [fraseDita, setFraseDita] = useState("");
 
   const hojeStr = new Date().toISOString().slice(0, 10);
   const abertoEm = useRef(Date.now());
@@ -1589,6 +1666,7 @@ export default function App() {
       else if (tela === "editar") { setRascunho(null); setTela("rotinas"); }
       else if (pausa) setPausa(false);
       else if (tela === "rotinas" || tela === "contatos" || tela === "apoio") setTela("pais");
+      else if (tela === "prancha" || tela === "sentimentos") setTela("casa");
       else if (tela !== "casa") setTela("casa");
       else AppNativo.exitApp();
     }).then((h) => { remover = () => h.remove(); }).catch(() => {});
@@ -1818,10 +1896,19 @@ export default function App() {
             ))}
           </div>
 
-          {aj.pausaCorpo && (
-            <button className="btn-pausa" onClick={() => setPausa(true)}>
-              Preciso mexer o corpo
-            </button>
+          {(aj.pausaCorpo || aj.sentimentos) && (
+            <div className="atalhos">
+              {aj.pausaCorpo && (
+                <button className="btn-pausa" onClick={() => setPausa(true)}>
+                  Preciso mexer o corpo
+                </button>
+              )}
+              {aj.sentimentos && (
+                <button className="btn-sentir" onClick={() => setTela("sentimentos")}>
+                  Como eu estou
+                </button>
+              )}
+            </div>
           )}
 
           {d.prova && momento === "noite" && (
@@ -1868,17 +1955,47 @@ export default function App() {
             </span>
           </div>
 
-          {temAdultos && (
-            <button className="chamar" onClick={() => setTela("adultos")}>
-              <Mao /> Chamar
-            </button>
+          {/* Os dois botões que precisam estar sempre no mesmo lugar: pedir
+              ajuda e dizer o que quer. Nada de menu para encontrar. */}
+          {(temAdultos || aj.prancha) && (
+            <div className="fixos">
+              {temAdultos && (
+                <button className="chamar" onClick={() => setTela("adultos")}>
+                  <Mao /> Chamar
+                </button>
+              )}
+              {aj.prancha && (
+                <button className="chamar prancha-btn" onClick={() => setTela("prancha")}>
+                  <Grade /> Prancha
+                </button>
+              )}
+            </div>
           )}
         </div>
       )}
 
       {/* ---------- MEUS ADULTOS ---------- */}
       {tela === "adultos" && (
-        <Adultos contatos={contatos} nivel={N.id} voltar={() => setTela("casa")} />
+        <Adultos contatos={contatos} nivel={N.id} frase={fraseDita}
+          voltar={() => { setFraseDita(""); setTela("casa"); }} />
+      )}
+
+      {/* ---------- PRANCHA DE COMUNICAÇÃO ---------- */}
+      {tela === "prancha" && (
+        <Prancha temAdultos={temAdultos} alto={aj.contraste}
+          voltar={() => setTela("casa")}
+          aoChamar={(texto) => { setFraseDita(texto); setTela("adultos"); }} />
+      )}
+
+      {/* ---------- COMO EU ESTOU ---------- */}
+      {tela === "sentimentos" && (
+        <Sentimentos nivel={N.id} voz={aj.voz} temAdultos={temAdultos}
+          voltar={() => setTela("casa")}
+          aoChamar={(texto) => { setFraseDita(texto); setTela("adultos"); }}
+          aoRegistrar={(id) => {
+            const novo = [...(d.diario || []), { e: id, dia: hojeStr }].slice(-90);
+            salvar({ ...d, diario: novo });
+          }} />
       )}
 
       {/* ---------- TAREFA ---------- */}
@@ -2347,6 +2464,8 @@ export default function App() {
               ["leitura", "Texto ampliado", "Letra maior e mais espaçada em todo o app."],
               ["contraste", "Alto contraste", "Fundo escuro, cores puras, contorno em tudo."],
               ["antecipacao", "Faixa agora / depois", "Mostra o passo atual e o seguinte."],
+              ["prancha", "Prancha de comunicação", "Botão fixo na casa, com o vocabulário-núcleo."],
+              ["sentimentos", "Como eu estou", "Atalho para nomear a emoção e respirar."],
             ].map(([k, nome, desc]) => (
               <div className="linha" key={k}>
                 <div className="linha-txt">
@@ -2361,6 +2480,42 @@ export default function App() {
                   aria-pressed={!!aj[k]} aria-label={nome}><i /></button>
               </div>
             ))}
+          </div>
+
+          <div>
+            <div className="linha-nome" style={{ marginBottom: 8 }}>Registro emocional</div>
+            {(d.diario || []).length === 0 ? (
+              <p className="linha-desc" style={{ marginBottom: 14 }}>
+                {aj.sentimentos
+                  ? "Ainda sem registro. Aparece aqui conforme a criança marcar como está."
+                  : "O atalho \"como eu estou\" está desligado. Ligue acima para a criança poder marcar."}
+              </p>
+            ) : (
+              <>
+                <div className="contagem">
+                  {EMOCOES.map((e) => {
+                    const n = (d.diario || []).filter((x) => x.e === e.id).length;
+                    if (!n) return null;
+                    return (
+                      <span className="conta-emo" key={e.id}>
+                        <svg viewBox="0 0 64 64" width="26" height="26" aria-hidden="true">{e.arte}</svg>
+                        {e.nome}: <b>{n}</b>
+                      </span>
+                    );
+                  })}
+                </div>
+                <p className="linha-desc" style={{ margin: "9px 0 14px" }}>
+                  Últimos:{" "}
+                  {(d.diario || []).slice(-6).reverse()
+                    .map((x) => `${(EMOCOES.find((e) => e.id === x.e) || {}).nome || x.e} (${x.dia.slice(8)}/${x.dia.slice(5, 7)})`)
+                    .join(" · ")}
+                </p>
+                <div className="aviso" style={{ marginBottom: 14 }}>
+                  Isto é contagem, não avaliação. Serve para você notar padrão — três dias
+                  seguidos com medo, por exemplo — e levar isso a quem acompanha a criança.
+                </div>
+              </>
+            )}
           </div>
 
           <div>
@@ -2694,6 +2849,20 @@ function Antecipacao({ agora, depois }) {
       <span className="antecipa-rot">depois</span>
       <b>{depois}</b>
     </div>
+  );
+}
+
+/* Quatro casas: a prancha de comunicação. */
+function Grade({ tam = 20, cor = "#FFFFFF" }) {
+  return (
+    <svg width={tam} height={tam} viewBox="0 0 24 24" aria-hidden="true">
+      <g fill={cor}>
+        <rect x="2.5" y="2.5" width="8" height="8" rx="2.4" />
+        <rect x="13.5" y="2.5" width="8" height="8" rx="2.4" />
+        <rect x="2.5" y="13.5" width="8" height="8" rx="2.4" />
+        <rect x="13.5" y="13.5" width="8" height="8" rx="2.4" />
+      </g>
+    </svg>
   );
 }
 
