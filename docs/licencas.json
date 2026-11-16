@@ -1,5 +1,5 @@
 {
-  "atualizadoEm": "2026-11-13",
+  "atualizadoEm": "2026-11-16",
   "graciaDias": 7,
   "licencas": [
     {
@@ -7,6 +7,13 @@
       "apelido": "Teste interno",
       "criadaEm": "2026-11-13",
       "validade": null,
+      "ativa": true
+    },
+    {
+      "h": "c42cfc04c6fdab48728b4fefe0d0dbe2d115eae19701e685c4235df71d216185",
+      "apelido": "Ricardo — aparelho de teste",
+      "criadaEm": "2026-11-16",
+      "validade": "2027-12-31",
       "ativa": true
     }
   ]
