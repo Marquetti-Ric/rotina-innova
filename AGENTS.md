@@ -76,7 +76,7 @@ vive. Um teste de triagem dentro do app — ainda que com aviso de que só o
 especialista diagnostica — muda a finalidade e leva a registro, responsável
 técnico e custo. Não acrescentar sem decisão explícita e parecer.
 
-### Mais quatro coisas que não se mexem
+### Mais cinco coisas que não se mexem
 
 - **A prancha fala sempre**, mesmo com a narração automática desligada no perfil
   sensorial. Nos outros lugares a voz é o app lendo para a criança; na prancha a
@@ -85,6 +85,13 @@ técnico e custo. Não acrescentar sem decisão explícita e parecer.
   Cada passo tem o seu alto-falante e a criança escolhe quando ouvir.
 - **O alto contraste vence a cor de destaque da clínica.** Acessibilidade não
   cede para marca.
+- **Na tela de código, o botão nunca fica mudo.** Botão desabilitado não
+  dispara evento: a pessoa toca, nada acontece, e ela não sabe se o app travou
+  ou se ela errou. "Liberar o app" sempre responde e diz o que falta. Pela
+  mesma razão a máscara do campo usa `X` e tem cor própria e clara — sem isso
+  ela herda o padrão do WebView e o campo parece já preenchido.
+  `teste:portao` trava o contraste desta tela: se alguém clarear a paleta de
+  novo, o teste quebra.
 - **Pedir ajuda não tem barreira.** Ligar e abrir o WhatsApp são links para fora
   do app, que a categoria infantil da App Store só admite atrás de um parental
   gate. Barreira na frente de um pedido de ajuda não faz sentido, então o app é
@@ -112,11 +119,12 @@ percebe e abandona.
 
 ```bash
 npm run build     # tem de passar sem avisos
-npm run teste     # 225 verificações, em seis suítes
+npm run teste     # 254 verificações, em sete suítes
 ```
 
 As suítes, se precisar rodar uma só: `teste:fluxo` (ativação → níveis → rotina →
-atualização), `teste:contatos`, `teste:apoio` (a derivação dos ajustes),
+atualização), `teste:portao` (a tela de código: colar, erros e contraste),
+`teste:contatos`, `teste:apoio` (a derivação dos ajustes),
 `teste:identificacao` (da tela ao app aplicando o perfil), `teste:modulos`
 (prancha e sentimentos) e `teste:notas` (o caderno e o resumo). São testes de renderização de verdade, com jsdom: o
 projeto já teve um erro de inicialização que passou pela checagem de sintaxe e

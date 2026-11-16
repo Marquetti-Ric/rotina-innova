@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import App from './App.jsx';
-import { conferir, ativar } from './licenca';
+import { conferir, ativar, extrair } from './licenca';
 import { checar, adiar, baixar } from './atualizacao';
 import { marca } from './marca';
 
@@ -14,19 +14,36 @@ const CSS = `
   font-family: 'Nunito', system-ui, sans-serif; color: #24403C; text-align: center; }
 .pt-logo { width: 72px; margin-bottom: 18px; }
 .pt-marca { font-family: 'Source Sans 3', system-ui, sans-serif; font-size: 15px;
-  letter-spacing: .075em; color: #7E7347; }
+  letter-spacing: .075em; color: #6E6540; }
 .pt-titulo { font-family: 'Baloo 2', system-ui, sans-serif; font-size: 25px; margin: 26px 0 8px; }
-.pt-texto { font-size: 15px; font-weight: 600; color: #8E8668; line-height: 1.6; max-width: 330px; }
-.pt-campo { width: 100%; max-width: 330px; margin-top: 22px; border: 2px solid #D8D2BC;
+/* #6E6540 dá 5,0:1 sobre o creme. O oliva da marca (#7E7347) dava 4,06 e
+   reprovava — a marca emoldura, mas não decide se o texto é legível. */
+.pt-texto { font-size: 15px; font-weight: 600; color: #6E6540; line-height: 1.6; max-width: 330px; }
+/* A borda é o que identifica o campo: o branco de dentro contra o creme dá
+   1,13:1, então sozinho ele não delimita nada. #8A8266 dá 3,29 contra o creme. */
+.pt-campo { width: 100%; max-width: 330px; margin-top: 22px; border: 2px solid #8A8266;
   background: #fff; border-radius: 16px; padding: 16px; font-family: 'Baloo 2', system-ui, sans-serif;
   font-size: 21px; letter-spacing: .08em; text-align: center; color: #24403C; outline: none; }
-.pt-campo:focus { border-color: #2F6B62; }
+.pt-campo:focus { border-color: #2F6B62; box-shadow: 0 0 0 3px rgba(47,107,98,.22); }
+/* A máscara precisa parecer máscara. Sem cor explícita ela herda o padrão do
+   WebView, que em alguns aparelhos sai quase tão escura quanto texto digitado
+   — e aí o campo parece preenchido. */
+.pt-campo::placeholder { color: #A7B0AE; font-weight: 400; letter-spacing: .06em; }
 .pt-botao { width: 100%; max-width: 330px; margin-top: 12px; border: none; cursor: pointer;
   border-radius: 18px; padding: 17px; background: #2F6B62; color: #fff;
   font-family: 'Baloo 2', system-ui, sans-serif; font-size: 18px; font-weight: 700; }
 .pt-botao[disabled] { opacity: .5; }
-.pt-botao.claro { background: #fff; color: #2F6B62; box-shadow: inset 0 0 0 2px #D8D2BC; }
-.pt-erro { margin-top: 14px; font-size: 14px; font-weight: 700; color: #C2566E; max-width: 330px; line-height: 1.5; }
+.pt-botao.claro { background: #fff; color: #2F6B62; box-shadow: inset 0 0 0 2px #8A8266; }
+.pt-colar { margin-top: 10px; border: none; background: transparent; cursor: pointer;
+  color: #2F6B62; font-family: 'Baloo 2', system-ui, sans-serif; font-size: 15px;
+  font-weight: 700; padding: 10px 14px; min-height: 44px; text-decoration: underline; }
+.pt-erro { margin-top: 14px; font-size: 14px; font-weight: 700; color: #A8405A; max-width: 330px;
+  line-height: 1.5; }
+/* A região fica sempre no HTML para o leitor de tela anunciar a mensagem
+   quando ela aparecer; vazia, não pode ocupar espaço. */
+.pt-erro:empty { margin: 0; }
+.pt-ajuda { margin-top: 10px; font-size: 13px; font-weight: 700; color: #6E6540; max-width: 330px;
+  line-height: 1.5; }
 
 .pt-faixa { position: fixed; left: 10px; right: 10px; bottom: calc(10px + env(safe-area-inset-bottom));
   z-index: 70; background: #fff; border-radius: 20px; padding: 14px 16px;
@@ -83,13 +100,40 @@ export default function Portao() {
     return () => clearTimeout(t);
   }, [estado]);
 
+  /* Sem botão desabilitado. Um botão que não responde ao toque não diz se o
+     app travou, se o toque não pegou ou se falta alguma coisa — e com a
+     máscara no campo, a pessoa acha que já preencheu. Aqui ele sempre
+     responde, e quando falta código ele explica o que falta. */
   async function enviar() {
+    if (extrair(codigo).length < 12) {
+      setErro(codigo.trim()
+        ? 'Esse código está incompleto. Confira se copiou os quatro grupos.'
+        : 'Digite o código que a clínica entregou. O campo ainda está vazio.');
+      return;
+    }
     setEnviando(true);
     setErro('');
     const r = await ativar(codigo);
     setEnviando(false);
     if (r.ok) setEstado('liberado');
     else setErro(r.motivo);
+  }
+
+  /* A clínica manda o código por WhatsApp: colar é o caminho principal, e
+     toque longo num campo é difícil para quem está com a criança no colo. */
+  async function colar() {
+    setErro('');
+    try {
+      const t = await navigator.clipboard.readText();
+      if (!t || !t.trim()) {
+        setErro('Não há nada copiado. Copie o código na mensagem da clínica e volte aqui.');
+        return;
+      }
+      setCodigo(extrair(t));
+    } catch {
+      setErro('Seu aparelho não deixou eu ler o que está copiado. '
+        + 'Toque e segure no campo acima para colar.');
+    }
   }
 
   if (estado === 'carregando') {
@@ -106,21 +150,37 @@ export default function Portao() {
         </p>
         <input
           className="pt-campo"
+          id="pt-codigo"
+          aria-label="Código de acesso, quatro grupos de letras e números"
+          aria-describedby="pt-dica"
           value={codigo}
           onChange={(e) => setCodigo(e.target.value.toUpperCase())}
-          placeholder="CMB-0000-0000-0000"
+          /* X e não 0: o gerador não usa 0, O, 1, I, L, 5 nem S, justamente
+             porque se confundem lidos à mão. Uma máscara com zeros ensina um
+             caractere que nenhum código tem. */
+          placeholder="CMB-XXXX-XXXX-XXXX"
           autoCapitalize="characters"
           autoCorrect="off"
           spellCheck="false"
           inputMode="text"
-          maxLength={24}
+          /* Folgado de propósito: quem cola a mensagem inteira da clínica
+             ("Código de acesso: CMB-...") não pode ter o texto cortado —
+             o extrair() acha o código dentro. */
+          maxLength={160}
         />
-        <button className="pt-botao" onClick={enviar} disabled={enviando || codigo.length < 8}>
+        {!codigo && (
+          <button className="pt-colar" onClick={colar}>Colar o código copiado</button>
+        )}
+        <button className="pt-botao" onClick={enviar} disabled={enviando}>
           {enviando ? 'Conferindo...' : 'Liberar o app'}
         </button>
-        {erro && <p className="pt-erro">{erro}</p>}
-        <p className="pt-texto" style={{ marginTop: 22, fontSize: 13 }}>
+        <p className="pt-erro" role="status" aria-live="polite">{erro}</p>
+        <p className="pt-ajuda" id="pt-dica">
           Ainda não tem um código? Peça na recepção da clínica.
+        </p>
+        <p className="pt-ajuda" style={{ marginTop: 18 }}>
+          O Combinado organiza a rotina do dia em passos ilustrados, no ritmo
+          de cada criança.
         </p>
       </Moldura>
     );

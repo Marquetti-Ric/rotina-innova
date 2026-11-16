@@ -28,6 +28,21 @@ const agora = () => Math.floor(Date.now() / 1000);
 const diasEntre = (a, b) => Math.floor((new Date(b) - new Date(a)) / 86400000);
 const normalizar = (c) => (c || '').toUpperCase().replace(/[^A-Z0-9]/g, '');
 
+/* Alfabeto do gerador de códigos. Dos pares que se confundem lidos à mão ou
+   ditados por telefone (0/O, 1/I/L, 5/S), ficou o dígito e saiu a letra. */
+const ALFABETO = '2-9ABCDEFGHJKMNPQRTUVWXYZ';
+const PADRAO_CODIGO = new RegExp(`CMB[${ALFABETO}]{12}`);
+
+/* A clínica entrega o código por WhatsApp, e o responsável cola a mensagem
+   inteira — "Código de acesso: CMB-...". Em vez de exigir que ele limpe o
+   texto, procuramos o código dentro do que veio. Sem isso o app devolve
+   "código não encontrado" para um código que está correto. */
+export function extrair(texto) {
+  const limpo = normalizar(texto);
+  const achado = limpo.match(PADRAO_CODIGO);
+  return achado ? achado[0] : limpo;
+}
+
 async function sha256(texto) {
   const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(texto));
   return Array.from(new Uint8Array(buf)).map((b) => b.toString(16).padStart(2, '0')).join('');
@@ -70,7 +85,7 @@ export async function limparLicenca() {
 /* ------------------------------------------------------------------ ativar */
 
 export async function ativar(codigo) {
-  const limpo = normalizar(codigo);
+  const limpo = extrair(codigo);
   if (limpo.length < 12) {
     return { ok: false, motivo: 'Código curto demais. Confira se digitou tudo.' };
   }
@@ -119,7 +134,16 @@ async function ativarPelaLista(codigo) {
 
   const h = await sha256(codigo);
   const achada = (lista.licencas || []).find((l) => l.h === h);
-  if (!achada) return { ok: false, motivo: 'Código não encontrado. Confira com a clínica.' };
+  /* A lista vem do GitHub Pages, que leva de meio a um minuto para publicar
+     depois que a clínica gera o código. Nessa janela o código está certo e a
+     lista ainda é a antiga — culpar o código manda a família à recepção à toa. */
+  if (!achada) {
+    return {
+      ok: false,
+      motivo: 'Não encontramos esse código. Se ele acabou de ser gerado, espere um '
+        + 'minuto e toque de novo. Se não, confira os caracteres com a clínica.',
+    };
+  }
   if (!achada.ativa) return { ok: false, motivo: 'Este código foi desativado. Fale com a clínica.' };
   if (achada.validade && achada.validade < hoje()) {
     return { ok: false, motivo: `Este código venceu em ${achada.validade}.` };

@@ -44,10 +44,10 @@ await pausa(150);
 ok('1. abre pedindo o código de acesso       ', txt().includes('Código de acesso'));
 
 await digitar('.pt-campo', 'INNV-0000-0000-0000');
-ok('2. botão libera após digitar             ', !document.querySelector('.pt-botao').disabled);
+ok('2. o botão nunca fica mudo ao toque      ', !document.querySelector('.pt-botao').disabled);
 
 await clicar('.pt-botao'); await pausa(200);
-ok('3. código inválido mostra o erro         ', txt().includes('não encontrado'), txt().slice(-80));
+ok('3. código inválido mostra o erro         ', txt().includes('Não encontramos esse código'), txt().slice(-80));
 
 await digitar('.pt-campo', 'innv 4x5d wba9 t4a6');
 await clicar('.pt-botao'); await pausa(250);
