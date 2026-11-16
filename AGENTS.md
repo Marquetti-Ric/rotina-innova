@@ -119,7 +119,7 @@ percebe e abandona.
 
 ```bash
 npm run build     # tem de passar sem avisos
-npm run teste     # 254 verificações, em sete suítes
+npm run teste     # 256 verificações, em sete suítes
 ```
 
 As suítes, se precisar rodar uma só: `teste:fluxo` (ativação → níveis → rotina →

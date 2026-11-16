@@ -51,11 +51,11 @@ const CSS = `
   font-family: 'Nunito', system-ui, sans-serif; animation: ptSobe .4s cubic-bezier(.2,.9,.3,1) both; }
 @keyframes ptSobe { from { transform: translateY(120%); opacity: 0 } to { transform: none; opacity: 1 } }
 .pt-faixa-txt { flex: 1; font-size: 13px; font-weight: 700; color: #24403C; line-height: 1.4; }
-.pt-faixa-txt small { display: block; font-weight: 600; color: #8E8668; margin-top: 2px; }
+.pt-faixa-txt small { display: block; font-weight: 600; color: #6E6540; margin-top: 2px; }
 .pt-faixa button { border: none; cursor: pointer; border-radius: 13px; padding: 11px 14px;
   font-family: 'Baloo 2', system-ui, sans-serif; font-size: 14px; font-weight: 700;
   background: #2F6B62; color: #fff; flex-shrink: 0; }
-.pt-faixa button.ignorar { background: transparent; color: #8E8668; padding: 11px 6px; }
+.pt-faixa button.ignorar { background: transparent; color: #6E6540; padding: 11px 6px; }
 @media (prefers-reduced-motion: reduce) { .pt-faixa { animation: none } }
 `;
 

@@ -210,7 +210,17 @@ ok('6.3 nome da marca ≥ 4,5:1             ',
   marca && razao(marca, CREME) >= 4.5, `${marca} = ${marca && razao(marca, CREME).toFixed(2)}`);
 ok('6.4 borda do campo ≥ 3:1              ',
   borda && razao(borda, CREME) >= 3, `${borda} = ${borda && razao(borda, CREME).toFixed(2)}`);
-ok('6.5 a máscara é bem mais clara        ', (() => {
+/* A faixa de carência e a de nova versão são cartões brancos, e o "Depois"
+   é um controle: 4,5:1 vale para ele também. */
+const sobreBranco = (regra) => {
+  const c = corDe(regra);
+  return c && razao(c, '#FFFFFF') >= 4.5;
+};
+ok('6.5 texto da faixa ≥ 4,5:1 no branco  ',
+  sobreBranco('.pt-faixa-txt small'), String(corDe('.pt-faixa-txt small')));
+ok('6.6 botão "Depois" ≥ 4,5:1 no branco  ',
+  sobreBranco('.pt-faixa button.ignorar'), String(corDe('.pt-faixa button.ignorar')));
+ok('6.7 a máscara é bem mais clara        ', (() => {
   const b = css.match(/\.pt-campo::placeholder\s*{[^}]*}/);
   const c = b && b[0].match(/color:\s*(#[0-9A-Fa-f]{6})/);
   return c && razao(c[1], '#FFFFFF') < 3;
