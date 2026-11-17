@@ -18,6 +18,7 @@ import {
 import { falar, calar } from "./voz.js";
 import Prancha from "./Prancha.jsx";
 import Sentimentos, { EMOCOES } from "./Sentimentos.jsx";
+import Pausa, { PAUSAS_CORPO } from "./pausas.jsx";
 import Notas from "./Notas.jsx";
 import Relatorio from "./Relatorio.jsx";
 import { PADRAO_NOTAS, carregarNotas, gravarNotas } from "./notas.js";
@@ -479,6 +480,25 @@ h1, h2, h3, .display { font-family: 'Baloo 2', ui-rounded, system-ui, sans-serif
 .item-voz:active { transform: scale(.93); }
 
 .atalhos { display: flex; gap: 10px; }
+/* ---------- pausa do corpo: a demonstração ----------
+   Aqui o movimento é a instrução, não enfeite. Em todo o resto do app o modo
+   calmo zera --t e o movimento para; nesta cena ele só fica mais lento, de
+   2,8s para 4,6s, porque congelar tiraria o conteúdo de quem não lê.
+   Com prefers-reduced-motion ele para de verdade — aí é o sistema falando
+   pelo usuário — e as setas estáticas de cada cena seguram o sentido. */
+.mexer { --mx: calc(4.6s - 1.8s * var(--t)); width: 196px; margin: 2px auto 2px; }
+.mexer svg { display: block; width: 100%; height: auto; }
+.mx-aperta { animation: mx-aperta var(--mx) ease-in-out infinite; transform-origin: 110px 79px; }
+.mx-pula { animation: mx-pula var(--mx) ease-in-out infinite; }
+.mx-sombra { animation: mx-sombra var(--mx) ease-in-out infinite; transform-origin: 110px 143px; }
+.mx-abraca { animation: mx-abraca var(--mx) ease-in-out infinite; transform-origin: 110px 72px; }
+.mx-empurra { animation: mx-empurra var(--mx) ease-in-out infinite; transform-origin: 90px 146px; }
+@keyframes mx-aperta { 0%,100% { transform: scaleX(1) } 50% { transform: scaleX(.84) } }
+@keyframes mx-pula { 0%,100% { transform: translateY(0) } 45% { transform: translateY(-16px) } }
+@keyframes mx-sombra { 0%,100% { transform: scaleX(1); opacity: 1 } 45% { transform: scaleX(.7); opacity: .55 } }
+@keyframes mx-abraca { 0%,100% { transform: scale(1) } 50% { transform: scale(.92) } }
+@keyframes mx-empurra { 0%,100% { transform: translateX(0) rotate(0deg) } 50% { transform: translateX(8px) rotate(2.5deg) } }
+
 .btn-pausa, .btn-sentir { flex: 1; border: none; cursor: pointer; border-radius: 19px;
   padding: 14px 10px; min-height: 52px;
   font-family: 'Baloo 2', sans-serif; font-size: 15.5px; font-weight: 700; }
@@ -2664,7 +2684,7 @@ export default function App() {
         <>
           <div className="scrim" onClick={() => setPausa(false)} />
           <div className="folha" role="dialog" aria-label="Pausa do corpo">
-            <Mao tam={56} cor="#78BE9B" />
+            <Pausa indice={pausaIdx} avatarId={d.avatar} />
             <h2 className="folha-titulo">{PAUSAS_CORPO[pausaIdx].nome}</h2>
             <p className="folha-sub" style={{ fontSize: 16 }}>{PAUSAS_CORPO[pausaIdx].dica}</p>
             <div className="folha-btns">
@@ -2946,13 +2966,6 @@ const SENSORIAL_NOMES = {
   nenhum: "sem alteração marcante", hiper: "hiper-reativo",
   hipo: "hipo-reativo", misto: "misto",
 };
-
-const PAUSAS_CORPO = [
-  { nome: "Aperto forte", dica: "Junte as mãos e aperte enquanto conta até dez." },
-  { nome: "Cinco pulos", dica: "Pule cinco vezes, contando alto." },
-  { nome: "Abraço apertado", dica: "Abrace o seu corpo e aperte um pouquinho." },
-  { nome: "Empurrar a parede", dica: "Empurre a parede com as duas mãos, bem forte." },
-];
 
 /* Duas mãos: um adulto grande e uma criança. Marca o botão de chamar. */
 function Mao({ tam = 21, cor = "#FFFFFF" }) {

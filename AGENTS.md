@@ -24,6 +24,13 @@ aplicativos e deve aparecer na linguagem de qualquer texto novo.
 - As 52 ilustrações são SVG escritas à mão dentro do `App.jsx`, no estilo
   "feltro recortado". Não substituir por emoji, bibliotecas de ícones ou imagens.
   Para uma tarefa nova, desenhar no mesmo estilo e registrar em `ARTES`.
+- Figura humana: cabeça pequena e pernas longas. A primeira versão das pausas
+  do corpo tinha cabeça grande e corpo curto, e saía um bebê — o nível 3 é
+  criança de 9 anos para cima e percebe.
+- **Desenho novo se confere olhando.** `npm run ver:pausas` monta uma página
+  com as cenas animadas. A primeira versão das pausas passou no build e nos
+  testes com duas cenas idênticas, setas ao contrário e mãos que não
+  encostavam na parede. Nada disso aparece lendo o SVG.
 
 ### Acessibilidade sensorial — isto é requisito, não enfeite
 - Nenhuma animação piscante ou estroboscópica. Nenhum som alto ou súbito.
@@ -85,6 +92,14 @@ técnico e custo. Não acrescentar sem decisão explícita e parecer.
   Cada passo tem o seu alto-falante e a criança escolhe quando ouvir.
 - **O alto contraste vence a cor de destaque da clínica.** Acessibilidade não
   cede para marca.
+- **A demonstração da pausa do corpo não congela no modo calmo.** Em todo o
+  resto do app o movimento é enfeite e `--t: 0` o desliga. Nas quatro cenas de
+  `pausas.jsx` o movimento é a instrução: quem precisa mexer o corpo muitas
+  vezes não está em condição de ler, e às vezes ainda não lê. Então ela fica
+  mais lenta (2,8s → 4,6s), não parada. Com `prefers-reduced-motion` ela para
+  de verdade — aí é o sistema falando pelo usuário — e por isso toda cena
+  carrega setas estáticas que seguram o sentido, com a pose de repouso sempre
+  legível.
 - **Na tela de código, o botão nunca fica mudo.** Botão desabilitado não
   dispara evento: a pessoa toca, nada acontece, e ela não sabe se o app travou
   ou se ela errou. "Liberar o app" sempre responde e diz o que falta. Pela
@@ -119,14 +134,15 @@ percebe e abandona.
 
 ```bash
 npm run build     # tem de passar sem avisos
-npm run teste     # 256 verificações, em sete suítes
+npm run teste     # 285 verificações, em oito suítes
 ```
 
 As suítes, se precisar rodar uma só: `teste:fluxo` (ativação → níveis → rotina →
 atualização), `teste:portao` (a tela de código: colar, erros e contraste),
 `teste:contatos`, `teste:apoio` (a derivação dos ajustes),
 `teste:identificacao` (da tela ao app aplicando o perfil), `teste:modulos`
-(prancha e sentimentos) e `teste:notas` (o caderno e o resumo). São testes de renderização de verdade, com jsdom: o
+(prancha e sentimentos), `teste:notas` (o caderno e o resumo) e
+`teste:pausas` (as quatro cenas do corpo). São testes de renderização de verdade, com jsdom: o
 projeto já teve um erro de inicialização que passou pela checagem de sintaxe e
 só apareceu na tela.
 
@@ -145,6 +161,7 @@ src/contatos.js       → telefones, wa.me, discador, visibilidade
 src/Adultos.jsx       → "Meus adultos": a tela de pedir ajuda
 src/Prancha.jsx       → prancha de CAA, com o vocabulário-núcleo
 src/Sentimentos.jsx   → check-in de emoções e respiração
+src/pausas.jsx        → as quatro pausas do corpo, desenhadas e animadas
 src/notas.js          → caderno de observação e montagem do resumo
 src/Notas.jsx         → "O que eu noto"
 src/Relatorio.jsx     → o resumo para levar na consulta
