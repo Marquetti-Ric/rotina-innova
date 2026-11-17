@@ -33,3 +33,6 @@ ios/DerivedData
 
 # ícones de PWA gerados pelo capacitor-assets (o app nativo não usa)
 icons/
+
+# relatório parcial da auditoria de contraste no navegador
+contraste-parcial.txt

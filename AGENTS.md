@@ -28,12 +28,28 @@ aplicativos e deve aparecer na linguagem de qualquer texto novo.
     aliança de casamento.
 - Paleta do app: musgo `#2F6B62`, damasco `#F2A65A`, folha `#78BE9B`,
   coral `#E8879B`, lilás `#8E82D4`, névoa `#E8F0EE`, tinta `#24403C`.
-- Paleta da marca: creme `#F0EEDF`, ouro `#ECB70D`, oliva `#7E7347`.
-  Essas três vêm medidas do logo original e só aparecem nas superfícies
-  institucionais (abertura, assinatura, área dos responsáveis).
+- Paleta da marca: creme `#F0EEDF`, ouro `#ECB70D`, oliva `#6B633E`.
+  As duas primeiras só aparecem nas superfícies institucionais (abertura,
+  assinatura, área dos responsáveis). O oliva era `#7E7347` e foi escurecido:
+  ele só existe como texto, e a `#7E7347` dava 4,06:1 sobre o creme.
+- **Damasco, folha, coral e lilás são cores de superfície, não de texto.**
+  Como texto elas somem (damasco dá 2,0:1 no branco); com branco por cima
+  elas somem igual (2,2:1 no folha, 2,5:1 no coral). Por isso existem
+  `--damasco-txt`, `--coral-txt` e `--tinta-forte`, e **nenhuma superfície
+  pode aparecer num `color:`** — `teste:contraste` varre e quebra.
+  Branco só sobre musgo, que dá 6,2:1.
+- **Contraste se mede, não se estima.** `node scripts/auditar-contraste.mjs`
+  abre o app num Chrome sem janela, caminha pelas telas e mede a cor
+  calculada contra o fundo efetivo. Foi assim que apareceram 27 pares
+  reprovando, de 1,73:1 a 4,06:1 — quase todos vindos de seis cores, não de
+  seis telas. Quem impede a volta é `teste:contraste`, que lê os tokens do
+  fonte e roda sem navegador, junto com os outros testes.
 - Fontes: Baloo 2 (títulos), Nunito (texto), Source Sans 3 (apenas o logotipo).
   Vêm de `@fontsource`, empacotadas. **Nunca** voltar a buscar no Google Fonts:
-  app infantil não deve mandar dados a terceiros.
+  app infantil não deve mandar dados a terceiros. **Isso vale para o `docs/`
+  também** — era justamente a página de privacidade que mandava o IP de quem
+  a abria para um CDN de terceiro. `node scripts/fontes-site.mjs` copia os
+  woff2 para `docs/fontes/` e escreve o `docs/fontes.css`.
 - As 52 ilustrações são SVG escritas à mão dentro do `App.jsx`, no estilo
   "feltro recortado". Não substituir por emoji, bibliotecas de ícones ou imagens.
   Para uma tarefa nova, desenhar no mesmo estilo e registrar em `ARTES`.
@@ -147,20 +163,24 @@ percebe e abandona.
 
 ```bash
 npm run build     # tem de passar sem avisos
-npm run teste     # 285 verificações, em oito suítes
+npm run teste     # 306 verificações, em nove suítes
 ```
 
 As suítes, se precisar rodar uma só: `teste:fluxo` (ativação → níveis → rotina →
 atualização), `teste:portao` (a tela de código: colar, erros e contraste),
 `teste:contatos`, `teste:apoio` (a derivação dos ajustes),
 `teste:identificacao` (da tela ao app aplicando o perfil), `teste:modulos`
-(prancha e sentimentos), `teste:notas` (o caderno e o resumo) e
-`teste:pausas` (as quatro cenas do corpo). São testes de renderização de verdade, com jsdom: o
-projeto já teve um erro de inicialização que passou pela checagem de sintaxe e
-só apareceu na tela.
+(prancha e sentimentos), `teste:notas` (o caderno e o resumo),
+`teste:pausas` (as quatro cenas do corpo) e `teste:contraste` (a paleta).
+
+As oito primeiras são testes de renderização de verdade, com jsdom: o projeto
+já teve um erro de inicialização que passou pela checagem de sintaxe e só
+apareceu na tela. A nona lê o CSS do fonte e faz a conta da WCAG.
 
 Se mexeu na interface, rode `npm run dev` e confira em 390×844 (tamanho de
-celular) que nada corta na horizontal.
+celular) que nada corta na horizontal. Se mexeu em cor, rode também
+`npm run build && node scripts/auditar-contraste.mjs` — leva uns treze
+minutos e é a única coisa que enxerga o que a tela realmente pinta.
 
 ## Arquitetura resumida
 
@@ -189,4 +209,7 @@ src/servidor.js       → endereço do GitHub Pages (um lugar só)
 docs/                 → site: download, privacidade, latest.json, licencas.json
 scripts/licenca.mjs   → gerador de códigos (roda no GitHub Actions)
 scripts/marca.mjs     → geometria do símbolo; gera os SVG e os PNG nativos
+scripts/contraste.mjs → trava a paleta (roda com os testes, sem navegador)
+scripts/auditar-contraste.mjs → mede o app num Chrome de verdade
+scripts/fontes-site.mjs → leva as fontes do app para o docs/
 ```

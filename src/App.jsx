@@ -42,7 +42,7 @@ const CSS = `
 .rt {
   /* cores institucionais da moldura — a clínica pode sobrescrever o destaque */
   --creme:   #F0EEDF;
-  --grafite: #7E7347;
+  --grafite: #6B633E;
   --ouro:    #ECB70D;
 
   --musgo:   #2F6B62;
@@ -54,7 +54,16 @@ const CSS = `
   --coral:   #E8879B;
   --folha:   #78BE9B;
   --tinta:   #24403C;
-  --tinta-3: #6E8A85;
+  --tinta-3: #546A66;
+  /* Damasco, folha e coral são cores de SUPERFÍCIE. Como texto elas somem
+     (damasco dá 2,0:1 no branco) e, como fundo, branco por cima some
+     igual (2,2:1 no folha, 2,5:1 no coral). Daí os três pares abaixo:
+     a versão escura para quando a cor precisa ser lida, e a tinta forte
+     para quando o texto cai sobre a cor. */
+  --damasco-txt: #8A5A20;
+  --coral-txt:   #945663;
+  --coral-borda: #CC7788;
+  --tinta-forte: #213B37;
   --raio: 26px;
   --sombra: 0 2px 0 rgba(36,64,60,.07), 0 10px 24px -12px rgba(36,64,60,.28);
   --t: 1;
@@ -110,7 +119,7 @@ h1, h2, h3, .display { font-family: 'Baloo 2', ui-rounded, system-ui, sans-serif
 .cartao-nome { font-family: 'Baloo 2', sans-serif; font-size: 16px; line-height: 1.15; }
 .cartao-rodape { display: flex; align-items: center; gap: 4px; font-size: 12.5px; font-weight: 700; color: var(--tinta-3); }
 .selo-ok { position: absolute; top: -7px; right: -7px; width: 30px; height: 30px; border-radius: 50%;
-  background: var(--folha); color: #fff; display: grid; place-items: center; font-size: 16px;
+  background: var(--folha); color: var(--tinta-forte); display: grid; place-items: center; font-size: 16px;
   box-shadow: 0 4px 10px -3px rgba(36,64,60,.5); animation: selo calc(.45s * var(--t)) cubic-bezier(.2,1.5,.4,1) both; }
 @keyframes selo { from { transform: scale(0) rotate(-40deg); } to { transform: none; } }
 
@@ -182,11 +191,12 @@ h1, h2, h3, .display { font-family: 'Baloo 2', ui-rounded, system-ui, sans-serif
 .item[data-ok="1"] .item-txt b { color: var(--tinta-3); text-decoration: line-through; }
 .item-cx { width: 28px; height: 28px; border-radius: 9px; background: #EAF1F0; display: grid; place-items: center;
   font-weight: 800; font-size: 13px; color: var(--tinta-3); flex-shrink: 0; }
-.item[data-ok="1"] .item-cx { background: var(--folha); color: #fff; }
+/* O ✓ é tinta, não branco: branco sobre o folha dá 2,2:1 e some. */
+.item[data-ok="1"] .item-cx { background: var(--folha); color: var(--tinta); }
 .item-txt { flex: 1; }
 .item-txt b { font-family: 'Baloo 2', sans-serif; font-size: 16px; display: block; font-weight: 600; }
 .item-txt small { font-size: 13px; color: var(--tinta-3); font-weight: 600; display: block; margin-top: 2px; line-height: 1.4; }
-.item-tempo { font-size: 11.5px; font-weight: 800; color: var(--damasco); background: #FFF3E4;
+.item-tempo { font-size: 11.5px; font-weight: 800; color: var(--damasco-txt); background: #FFF3E4;
   border-radius: 999px; padding: 4px 9px; flex-shrink: 0; }
 
 /* ---------- festa / painel ---------- */
@@ -238,7 +248,7 @@ h1, h2, h3, .display { font-family: 'Baloo 2', ui-rounded, system-ui, sans-serif
 .op-avatar[data-on="1"] { border-color: var(--musgo); }
 .btn-plano { width: 100%; border: none; cursor: pointer; border-radius: 18px; padding: 16px; background: var(--musgo);
   color: #fff; font-family: 'Baloo 2', sans-serif; font-size: 17px; font-weight: 700; margin-top: 8px; }
-.btn-plano.fantasma { background: var(--papel); color: var(--coral); box-shadow: inset 0 0 0 2px #F0D6DB; }
+.btn-plano.fantasma { background: var(--papel); color: var(--coral-txt); box-shadow: inset 0 0 0 2px var(--coral-borda); }
 
 /* ---------- cartões de nível ---------- */
 .niveis { display: flex; flex-direction: column; gap: 10px; }
@@ -259,7 +269,7 @@ h1, h2, h3, .display { font-family: 'Baloo 2', ui-rounded, system-ui, sans-serif
 .figurinha[data-travada="1"] { background: rgba(255,255,255,.45); box-shadow: none; }
 .figurinha[data-travada="1"] .fig-arte { filter: grayscale(1); opacity: .3; }
 .fig-nome { font-size: 11.5px; font-weight: 800; line-height: 1.2; margin-top: 6px; color: var(--tinta-3); }
-.fig-qtd { font-size: 10.5px; font-weight: 800; color: var(--damasco); margin-top: 2px; }
+.fig-qtd { font-size: 10.5px; font-weight: 800; color: var(--damasco-txt); margin-top: 2px; }
 .barra-prog { height: 7px; border-radius: 99px; background: #E4EDEB; overflow: hidden; margin-top: 7px; }
 .barra-prog i { display: block; height: 100%; background: var(--folha); border-radius: 99px;
   transition: width calc(.6s * var(--t)) cubic-bezier(.2,.9,.3,1); }
@@ -277,7 +287,7 @@ h1, h2, h3, .display { font-family: 'Baloo 2', ui-rounded, system-ui, sans-serif
   display: grid; place-items: center; padding: 30px; }
 .abertura[data-saindo="1"] { animation: sai calc(.55s * var(--t) + .01s) ease forwards; }
 @keyframes sai { to { opacity: 0; visibility: hidden } }
-.abertura-linha { font-family: 'Nunito', sans-serif; font-size: 12.5px; font-weight: 700; color: #9C9377;
+.abertura-linha { font-family: 'Nunito', sans-serif; font-size: 12.5px; font-weight: 700; color: var(--grafite);
   letter-spacing: .05em; text-align: center; margin-top: 34px; line-height: 1.7;
   opacity: 0; animation: revela calc(.8s * var(--t) + .01s) ease calc(1.2s * var(--t)) forwards; }
 @keyframes revela { to { opacity: 1; transform: none } }
@@ -286,14 +296,14 @@ h1, h2, h3, .display { font-family: 'Baloo 2', ui-rounded, system-ui, sans-serif
 
 .assinatura { display: flex; align-items: center; gap: 13px; background: var(--creme);
   border-radius: 20px; padding: 12px 18px; }
-.assinatura-txt { font-size: 11.5px; color: #938B6E; font-weight: 700; line-height: 1.45; }
+.assinatura-txt { font-size: 11.5px; color: var(--grafite); font-weight: 700; line-height: 1.45; }
 .assinatura-txt b { color: var(--grafite); font-weight: 800; }
 .institucional { background: var(--creme); border-radius: 26px; padding: 26px 20px 24px; text-align: center; }
 .institucional p { font-size: 13px; color: #8E8668; font-weight: 600; line-height: 1.6; margin-top: 20px; }
 
 
 /* ---------- horários, momentos e editor ---------- */
-.cartao-hora { font-family: 'Baloo 2', sans-serif; font-size: 12px; font-weight: 700; color: var(--damasco); }
+.cartao-hora { font-family: 'Baloo 2', sans-serif; font-size: 12px; font-weight: 700; color: var(--damasco-txt); }
 .cartao[data-agora="1"] { box-shadow: 0 0 0 3px var(--damasco), var(--sombra); }
 .faixa-prova { background: #FFF3E4; color: #8A6636; border-radius: 16px; padding: 11px 15px;
   font-size: 13px; font-weight: 800; text-align: center; }
@@ -315,8 +325,8 @@ h1, h2, h3, .display { font-family: 'Baloo 2', ui-rounded, system-ui, sans-serif
 .tarefa-dias { font-size: 11px; color: var(--tinta-3); font-weight: 700; margin-top: 2px; }
 .btn-mini { border: none; cursor: pointer; background: #EAF1F0; border-radius: 11px; width: 34px; height: 34px;
   font-size: 15px; color: var(--tinta-3); flex-shrink: 0; }
-.btn-mini[data-on="1"] { background: var(--folha); color: #fff; }
-.btn-mini.perigo { background: #FCEAEE; color: var(--coral); }
+.btn-mini[data-on="1"] { background: var(--folha); color: var(--tinta-forte); }
+.btn-mini.perigo { background: #FCEAEE; color: var(--coral-txt); }
 
 .campo-rot { font-size: 12px; font-weight: 800; color: var(--tinta-3); text-transform: uppercase;
   letter-spacing: .05em; margin: 16px 0 7px; }
@@ -345,7 +355,7 @@ h1, h2, h3, .display { font-family: 'Baloo 2', ui-rounded, system-ui, sans-serif
 .fixos { position: fixed; right: 16px; bottom: 18px; z-index: 30; display: flex;
   flex-direction: column; align-items: flex-end; gap: 9px; }
 .chamar { display: flex; align-items: center; gap: 8px; border: none; cursor: pointer;
-  background: var(--coral); color: #fff; border-radius: 999px;
+  background: var(--coral); color: var(--tinta-forte); border-radius: 999px;
   padding: 13px 19px 13px 16px; min-height: 52px;
   font-family: 'Baloo 2', sans-serif; font-size: 15.5px; font-weight: 700;
   box-shadow: 0 10px 24px -8px rgba(36,64,60,.7); }
@@ -607,7 +617,7 @@ h1, h2, h3, .display { font-family: 'Baloo 2', ui-rounded, system-ui, sans-serif
   transition: transform calc(3.6s * var(--t) + .01s) ease-in-out; }
 .bola-ar[data-cheia="1"] { transform: scale(1); }
 .ar-titulo { font-family: 'Baloo 2', sans-serif; font-size: 24px; }
-.ar-conta { font-family: 'Baloo 2', sans-serif; font-size: 40px; color: var(--coral); }
+.ar-conta { font-family: 'Baloo 2', sans-serif; font-size: 40px; color: var(--coral-txt); }
 .rt.contraste .emo, .rt.contraste .resposta { background: #000000;
   border: 3px solid #FFFFFF; box-shadow: none; }
 .rt.contraste .emo[data-on="1"] { border-color: #FFD400; }
