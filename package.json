@@ -7,6 +7,7 @@
     "dev": "vite",
     "build": "vite build",
     "lint": "oxlint",
+    "marca": "node scripts/marca.mjs && npx capacitor-assets generate --android --iconBackgroundColor '#F0EEDF' --iconBackgroundColorDark '#2F6B62' --splashBackgroundColor '#F0EEDF' --splashBackgroundColorDark '#2F6B62'",
     "preview": "vite preview",
     "teste:fluxo": "./node_modules/.bin/esbuild testes/fluxo.jsx --bundle --platform=node --format=esm --outfile=testes/f.mjs --packages=external --loader:.jsx=jsx --jsx=automatic --alias:@capacitor/app-launcher=./testes/falso-launcher.js && node testes/f.mjs",
     "teste:contatos": "./node_modules/.bin/esbuild testes/contatos.jsx --bundle --platform=node --format=esm --outfile=testes/c.mjs --packages=external --loader:.jsx=jsx --jsx=automatic --alias:@capacitor/app-launcher=./testes/falso-launcher.js && node testes/c.mjs",

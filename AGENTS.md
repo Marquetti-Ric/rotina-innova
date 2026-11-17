@@ -13,6 +13,19 @@ aplicativos e deve aparecer na linguagem de qualquer texto novo.
 ## Regras que NÃO devem ser alteradas sem pedido explícito
 
 ### Identidade visual
+- **O símbolo é um nó: dois anéis que se cruzam de verdade.** Um passa por
+  cima num cruzamento e por baixo no outro. Ele não é desenhado à mão: sai de
+  `scripts/marca.mjs`, que escreve os dois SVG e os cinco PNG de `assets/`.
+  Mexeu na marca? `npm run marca` e **olhe o resultado** — em 20px, em uma cor
+  só e invertido no musgo. Três coisas que a geometria resolve e que uma
+  reescrita costuma perder:
+  - **Os vãos ficam sobre os pontos de cruzamento**, não nos lados de dentro.
+    Nos lados de dentro os dois traços se fundem e sai um oito deitado.
+  - **Nada de `mask` nem de arco por cima.** Máscara quebra em favicon, em
+    ícone nativo e em renderizador antigo; arco por cima some quando a marca
+    é impressa em uma cor só.
+  - **Os anéis ficam na diagonal (−28°).** Lado a lado o desenho lê como
+    aliança de casamento.
 - Paleta do app: musgo `#2F6B62`, damasco `#F2A65A`, folha `#78BE9B`,
   coral `#E8879B`, lilás `#8E82D4`, névoa `#E8F0EE`, tinta `#24403C`.
 - Paleta da marca: creme `#F0EEDF`, ouro `#ECB70D`, oliva `#7E7347`.
@@ -175,4 +188,5 @@ src/marca.js          → tema da clínica (nome, logo, destaque, telefone)
 src/servidor.js       → endereço do GitHub Pages (um lugar só)
 docs/                 → site: download, privacidade, latest.json, licencas.json
 scripts/licenca.mjs   → gerador de códigos (roda no GitHub Actions)
+scripts/marca.mjs     → geometria do símbolo; gera os SVG e os PNG nativos
 ```
