@@ -149,6 +149,65 @@ Três coisas aprendidas construindo, que não se descobrem lendo o código:
   por perfil; sugerir o que a pessoa já tem faz o assistente parecer que não
   olhou.
 
+### O nível 4 — cinco invariantes
+
+Os níveis 1 a 3 variam o tamanho do passo. O nível 4 varia outra coisa:
+**quem é o dono da rotina.** Nos três primeiros o adulto monta e a criança
+executa; para um adolescente essa relação é o problema, porque a tarefa da
+idade é deixar de ser executor.
+
+**Três papéis, e confundi-los desmonta o nível:**
+
+| papel | quem é | o que decide |
+|---|---|---|
+| titular da licença | a clínica, ou quem comprou na loja | paga, recebe aviso de vencimento, **habilita** o nível 4 |
+| responsável | quem administra no dia a dia | executa a passagem |
+| dono da rotina | níveis 1–3: o responsável; nível 4: o jovem | cria tarefas, decide o que é partilhado |
+
+A licença define quem **responde**, nunca quem é dono. É o que permite ao
+nível 4 mover a propriedade sem mover a responsabilidade — e é o que torna o
+modelo defensável para a clínica que paga.
+
+1. **Retirar o app de volta é possível, nunca silencioso.** `retomar` grava
+   `retomadoEm`, e o aviso aparece antes de qualquer outra tela. Autonomia
+   revogável em segredo é pior que autonomia nenhuma: ensina que o controle
+   era da boca para fora.
+2. **O número conta o ambiente, nunca a pessoa.** "Esqueci — 2" é fato sobre
+   a manhã; "você cumpriu 62%" é veredito. Sem nota, sem porcentagem e sem
+   sequência — quebrar uma sequência transformaria o pior dia dele numa
+   punição visível. `teste:nivel4` varre a tela atrás de número de
+   desempenho e varre o módulo atrás de função de placar.
+3. **A recompensa é menos app.** Quando a rotina se sustenta por seis
+   semanas, o app oferece parar de lembrar. Uma falha não zera nada: adia.
+   Um organizador que funciona deveria ser necessário cada vez menos, e
+   perseguir uso diário empurraria o produto a fabricar dependência.
+4. **As anotações dele não têm interruptor.** Rotina e travamentos ele
+   partilha se quiser; para as anotações não existe botão — nem na tela nem
+   no código: `virarPartilha(d, 'notas')` devolve o estado intacto.
+5. **A partilha não é configurável pela clínica.** O `marca.js` já separou
+   moldura de miolo: a clínica veste logotipo, cor e nome, e o miolo é fixo
+   porque é onde mora a acessibilidade. Partilha é miolo. A clínica liga ou
+   não liga o nível 4 — decisão clínica legítima — mas não liga **e**
+   continua vendo tudo.
+
+Três coisas que caem dos dois canais de venda (clínica white-label, e pessoa
+física que baixa da loja):
+
+- **No canal direto pode não haver adulto nenhum.** Um adolescente, ou um
+  adulto autista, que compra para si é titular, responsável e dono ao mesmo
+  tempo. Aí não há passagem: o app já começa no nível 4 e a ação é convidar,
+  não receber. **Isto ainda não está implementado** — hoje a passagem
+  pressupõe alguém que entrega.
+- **Aviso de vencimento vai para o titular.** A família não renova licença de
+  clínica; mandá-la renovar é mandar fazer o que ela não pode.
+- **A marca da clínica não entra na tela diária dele.** Fica na ativação, na
+  área do adulto e no resumo da consulta.
+
+O jovem no nível 3 tem um **"quero este app para mim"**, que chega como
+pedido na área dos responsáveis. Quem decide continua sendo o adulto — mas
+sem isso ele não tem nem como levantar o assunto, e pedir já é o exercício
+que o nível inteiro existe para sustentar.
+
 ### Mais cinco coisas que não se mexem
 
 - **A prancha fala sempre**, mesmo com a narração automática desligada no perfil
@@ -182,7 +241,7 @@ Três coisas aprendidas construindo, que não se descobrem lendo o código:
   `CALL_PHONE`.
 
 ### Estrutura
-- Três níveis por idade (1: 3–5, 2: 6–8, 3: 9+) mudam granularidade dos passos,
+- Quatro níveis (1: 3–5, 2: 6–8, 3: 9+, 4: 13+). Os três primeiros mudam granularidade dos passos,
   tom do texto, estrutura (trilha guiada x lista livre) e intensidade da
   recompensa. Cada tarefa de fábrica tem três versões de texto.
 - Quatro momentos: `manha`, `clinica`, `noite`, `fds`.
@@ -200,7 +259,7 @@ percebe e abandona.
 
 ```bash
 npm run build     # tem de passar sem avisos
-npm run teste     # 372 verificações, em dez suítes
+npm run teste     # 437 verificações, em onze suítes
 ```
 
 As suítes, se precisar rodar uma só: `teste:fluxo` (ativação → níveis → rotina →
@@ -209,9 +268,10 @@ atualização), `teste:portao` (a tela de código: colar, erros e contraste),
 `teste:identificacao` (da tela ao app aplicando o perfil), `teste:modulos`
 (prancha e sentimentos), `teste:notas` (o caderno e o resumo),
 `teste:pausas` (as quatro cenas do corpo), `teste:ajuste` (o assistente e o
-check-in da criança) e `teste:contraste` (a paleta).
+check-in da criança), `teste:nivel4` (propriedade, partilha e padrão) e
+`teste:contraste` (a paleta).
 
-As nove primeiras são testes de renderização de verdade, com jsdom: o projeto
+As dez primeiras são testes de renderização de verdade, com jsdom: o projeto
 já teve um erro de inicialização que passou pela checagem de sintaxe e só
 apareceu na tela. A nona lê o CSS do fonte e faz a conta da WCAG.
 
@@ -236,6 +296,9 @@ src/pausas.jsx        → as quatro pausas do corpo, desenhadas e animadas
 src/ajuste.js         → o assistente: pontos, sondas, propostas e aplicação
 src/Ajuste.jsx        → "Vamos ajustar juntos" (responsável)
 src/Atrapalhou.jsx    → "O que atrapalhou?" (criança), com os nove desenhos
+src/nivel4.js         → propriedade, partilha, padrão e a oferta de menos app
+src/Passagem.jsx      → a entrega do app, os dois lados, e o aviso da retomada
+src/Jovem.jsx         → a casa do nível 4: hoje, o que segurou, ajustes
 src/notas.js          → caderno de observação e montagem do resumo
 src/Notas.jsx         → "O que eu noto"
 src/Relatorio.jsx     → o resumo para levar na consulta

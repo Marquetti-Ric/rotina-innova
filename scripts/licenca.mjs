@@ -8,6 +8,8 @@
  *
  * Uso:
  *   node scripts/licenca.mjs --acao liberar --apelido "Clínica A" --validade 2027-12-31
+ *   node scripts/licenca.mjs --acao liberar --apelido "Clínica A" --titular clinica --nivel4 sim
+ *   node scripts/licenca.mjs --acao nivel4 --codigo CMB-XXXX-XXXX-XXXX --valor sim
  *   node scripts/licenca.mjs --acao renovar --codigo CMB-XXXX-XXXX-XXXX --validade 2028-06-30
  *   node scripts/licenca.mjs --acao revogar --codigo CMB-XXXX-XXXX-XXXX
  *   node scripts/licenca.mjs --acao listar
@@ -67,12 +69,18 @@ const acao = a.acao || 'listar';
 if (acao === 'liberar') {
   const codigo = gerarCodigo();
   const validade = validarData(a.validade);
+  /* `titular` diz quem responde pela licença, e `nivel4` se esta licença
+     permite o modo em que o jovem é dono do app. São coisas diferentes: a
+     licença define a responsabilidade, nunca a propriedade da rotina. */
+  const titular = a.titular === 'clinica' ? 'clinica' : 'pessoa';
   base.licencas.push({
     h: hash(codigo),
     apelido: a.apelido || 'sem apelido',
     criadaEm: new Date().toISOString().slice(0, 10),
     validade: validade || null,
     ativa: true,
+    titular,
+    nivel4: a.nivel4 === 'sim',
   });
   salvar(base);
   console.log(`## Licença criada\n`);
@@ -82,6 +90,8 @@ if (acao === 'liberar') {
   console.log('```\n');
   console.log(`- Apelido: ${a.apelido || 'sem apelido'}`);
   console.log(`- Validade: ${validade || 'sem prazo'}`);
+  console.log(`- Titular: ${titular === 'clinica' ? 'clínica' : 'pessoa física'}`);
+  console.log(`- Nível 4 (o jovem é dono do app): ${a.nivel4 === 'sim' ? 'liberado' : 'não'}`);
   console.log(`\n> Anote este código agora. Só o hash fica guardado — não há como recuperá-lo depois.`);
 
 } else if (acao === 'renovar') {
@@ -95,6 +105,20 @@ if (acao === 'liberar') {
   console.log(`## Licença renovada\n`);
   console.log(`- Apelido: ${lic.apelido}`);
   console.log(`- Nova validade: ${lic.validade || 'sem prazo'}`);
+
+} else if (acao === 'nivel4') {
+  /* A clínica liga ou desliga o nível 4 depois da ativação; o aparelho
+     recebe na conferência diária. É binário de propósito: não existe
+     liberar o nível 4 e continuar vendo tudo. */
+  if (!a.codigo) throw new Error('Informe --codigo.');
+  const h = hash(a.codigo);
+  const lic = base.licencas.find((l) => l.h === h);
+  if (!lic) throw new Error('Código não encontrado.');
+  lic.nivel4 = a.valor === 'sim';
+  salvar(base);
+  console.log(`## Nível 4 ${lic.nivel4 ? 'liberado' : 'bloqueado'}\n`);
+  console.log(`- Apelido: ${lic.apelido}`);
+  console.log(`\n> Chega no aparelho na próxima conferência de licença.`);
 
 } else if (acao === 'revogar') {
   if (!a.codigo) throw new Error('Informe --codigo para revogar.');

@@ -157,6 +157,14 @@ async function ativarPelaLista(codigo) {
     gracia: lista.graciaDias ?? 7,
     ultimaConferencia: hoje(),
     primeiroAviso: null,
+    /* Quem responde pela licença. Isso NÃO diz quem é dono da rotina: no
+       nível 4 a propriedade passa para o jovem e a responsabilidade não.
+       Ausente = pessoa, para as licenças que já existem continuarem valendo. */
+    titular: achada.titular === 'clinica' ? 'clinica' : 'pessoa',
+    /* Se esta licença permite o nível 4. Na clínica é decisão dela, e é
+       binária: ou o paciente é dono do app, ou não é. Não existe ligar o
+       nível 4 e continuar vendo tudo. */
+    nivel4: achada.nivel4 === true,
   };
   await gravar(dados);
   return { ok: true, licenca: dados };
@@ -231,6 +239,12 @@ async function conferirLista(lic) {
       lic.gracia = lista.graciaDias ?? lic.gracia ?? 7;
       const achada = (lista.licencas || []).find((l) => l.h === lic.h);
       revogada = !achada || !achada.ativa;
+      /* A clínica pode ligar ou desligar o nível 4 depois da ativação: a
+         conferência diária é onde isso chega ao aparelho. */
+      if (achada) {
+        lic.titular = achada.titular === 'clinica' ? 'clinica' : 'pessoa';
+        lic.nivel4 = achada.nivel4 === true;
+      }
       if (achada && achada.validade !== undefined) lic.validade = achada.validade;
       lic.ultimaConferencia = hoje();
       if (!revogada && !(lic.validade && lic.validade < hoje())) lic.primeiroAviso = null;

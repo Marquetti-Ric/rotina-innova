@@ -25,6 +25,12 @@ import { PADRAO_NOTAS, carregarNotas, gravarNotas, novaNota } from "./notas.js";
 import Ajuste from "./Ajuste.jsx";
 import Atrapalhou from "./Atrapalhou.jsx";
 import { notaDaCrianca, ATRAPALHOU } from "./ajuste.js";
+import {
+  PADRAO_N4, NIVEL4, permiteNivel4, ehDono, passar, retomar, viuRetomada,
+  pedir, limparPedido, virarPartilha, adultoVe, aplicarMenos,
+} from "./nivel4.js";
+import Jovem from "./Jovem.jsx";
+import { PassagemAdulto, PassagemJovem, AvisoRetomada } from "./Passagem.jsx";
 
 /* ============================================================
    ROTINA — jogo de rotinas diárias para crianças com TEA
@@ -256,6 +262,10 @@ h1, h2, h3, .display { font-family: 'Baloo 2', ui-rounded, system-ui, sans-serif
 .btn-plano { width: 100%; border: none; cursor: pointer; border-radius: 18px; padding: 16px; background: var(--musgo);
   color: #fff; font-family: 'Baloo 2', sans-serif; font-size: 17px; font-weight: 700; margin-top: 8px; }
 .btn-plano.fantasma { background: var(--papel); color: var(--coral-txt); box-shadow: inset 0 0 0 2px var(--coral-borda); }
+/* A classe fantasma é o botão de ação destrutiva, e o coral avisa disso.
+   "Agora não" e "abrir o caderno" não destroem nada: coral ali vira susto
+   à toa, então existe a variante neutra. */
+.btn-plano.neutro { background: var(--papel); color: var(--tinta-3); box-shadow: inset 0 0 0 2px var(--borda-ctrl); }
 
 /* ---------- cartões de nível ---------- */
 .niveis { display: flex; flex-direction: column; gap: 10px; }
@@ -572,6 +582,99 @@ h1, h2, h3, .display { font-family: 'Baloo 2', ui-rounded, system-ui, sans-serif
   font-family: 'Nunito', sans-serif; font-size: 13px; font-weight: 700; text-align: left; }
 .etiqueta[data-on="1"] { border-color: var(--folha); background: #EAF6F0; color: #1F4A43; }
 .campo.area { min-height: 84px; resize: vertical; line-height: 1.5; }
+/* ---- nível 4: pedir o app, e o pedido chegando ao adulto ---- */
+.pedir { width: 100%; margin: 10px 0 2px; font: inherit; font-weight: 800; font-size: 14px;
+  cursor: pointer; background: transparent; border: 2px solid var(--borda-ctrl);
+  border-radius: 14px; padding: 11px; color: var(--tinta-3); }
+.pedir:disabled { cursor: default; border-style: dashed; }
+.pedido { display: flex; align-items: center; gap: 9px; background: #E9F5EF;
+  border-radius: 15px; padding: 11px 12px; margin-top: 9px; }
+.pedido b { display: block; font-size: 13.5px; }
+.pedido span { display: block; font-size: 12px; color: var(--tinta-3); }
+
+/* ---- nível 4: a passagem ---- */
+.psg { padding: 6px 2px 14px; }
+.psg-tit { font-family: 'Baloo 2', sans-serif; font-weight: 600; font-size: 24px;
+  line-height: 1.22; color: var(--musgo); margin: 4px 0 8px; }
+.psg-txt { font-size: 15px; margin: 0 0 12px; }
+.psg-txt.mudo { color: var(--tinta-3); font-size: 13.5px; }
+.psg-aviso { background: #FFF3E4; border-radius: 16px; padding: 13px 14px;
+  border-left: 4px solid var(--damasco); margin-bottom: 12px; }
+.psg-aviso ul { margin: 0; padding-left: 18px; font-size: 14px; }
+.psg-aviso li { margin-bottom: 6px; }
+.psg-volta { font-size: 13.5px; color: var(--damasco-txt); font-weight: 700; margin: 0 0 14px; }
+.psg-lista { margin: 0 0 13px; padding-left: 19px; font-size: 15px; }
+.psg-lista li { margin-bottom: 6px; }
+.psg-check { display: flex; align-items: flex-start; gap: 10px; background: var(--papel);
+  border-radius: 14px; padding: 12px 13px; margin-bottom: 11px; font-size: 14.5px;
+  font-weight: 700; cursor: pointer; }
+.psg-check input { width: 21px; height: 21px; margin: 0; flex: none; accent-color: var(--musgo); }
+.psg-falta { font-size: 13px; color: var(--damasco-txt); font-weight: 700; margin: 7px 0 9px;
+  min-height: 19px; }
+
+/* ---- nível 4: a casa do jovem ---- */
+.jv { display: flex; flex-direction: column; min-height: 100%; }
+.jv-topo { margin-bottom: 11px; }
+.jv-topo b { font-family: 'Baloo 2', sans-serif; font-weight: 600; font-size: 22px; color: var(--musgo); }
+.jv-corpo { flex: 1; }
+.jv-data { font-size: 13px; color: var(--tinta-3); font-weight: 700; margin: 0 0 11px; }
+.jv-vazio { font-size: 14.5px; color: var(--tinta-3); margin: 14px 0; }
+.jv-lista { display: flex; flex-direction: column; gap: 7px; }
+.jv-item { display: flex; align-items: center; gap: 12px; width: 100%; text-align: left;
+  font: inherit; cursor: pointer; background: var(--papel); border: 0; border-radius: 16px;
+  padding: 13px 14px; box-shadow: var(--sombra); }
+.jv-item b { display: block; font-size: 15px; font-weight: 700; color: var(--tinta); }
+.jv-item span.jv-txt > span { display: block; font-size: 12.5px; color: var(--tinta-3); }
+.jv-item[data-ok="1"] b { color: var(--tinta-3); text-decoration: line-through; }
+.jv-cx { width: 23px; height: 23px; border-radius: 8px; border: 2px solid var(--borda-ctrl);
+  flex: none; display: grid; place-items: center; font-size: 14px; color: var(--tinta-forte); }
+.jv-item[data-ok="1"] .jv-cx { background: var(--folha); border-color: var(--folha); }
+.jv-nova { width: 100%; margin-top: 11px; font: inherit; font-weight: 800; font-size: 14.5px;
+  cursor: pointer; background: transparent; border: 2px dashed var(--borda-ctrl);
+  border-radius: 14px; padding: 12px; color: var(--tinta-3); }
+/* A barra fica no fim do fluxo, não grudada embaixo: a faixa de nova versão
+   é fixa no rodapé e cobriria as abas justamente quando elas aparecem. */
+.jv-barra { display: flex; gap: 6px; margin-top: 18px; padding-bottom: 6px; }
+.jv-b { flex: 1; font: inherit; font-weight: 800; font-size: 12px; cursor: pointer; border: 0;
+  border-radius: 12px; padding: 11px 3px; background: var(--papel); color: var(--tinta-3); }
+.jv-b[aria-selected="true"] { background: var(--musgo); color: #FFFFFF; }
+
+.jv-escolhe { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 12px; }
+.jv-chip { font: inherit; font-weight: 700; font-size: 12.5px; cursor: pointer; border: 2px solid var(--borda-ctrl);
+  background: transparent; color: var(--tinta-3); border-radius: 999px; padding: 6px 12px; }
+.jv-chip[data-on="1"] { background: var(--musgo); border-color: var(--musgo); color: #FFFFFF; }
+.jv-fita { display: flex; gap: 3px; background: var(--papel); border-radius: 14px;
+  padding: 12px 9px; margin-bottom: 7px; }
+.jv-mc { flex: 1; text-align: center; font-size: 15px; line-height: 1; }
+.jv-feito { color: var(--musgo); }
+.jv-nao { color: #8B9A96; }
+.jv-folga { color: #C2CFCB; }
+.jv-legenda { font-size: 11.5px; color: var(--tinta-3); margin: 0 0 13px; }
+.jv-achado { background: var(--papel); border-radius: 15px; padding: 13px; margin-bottom: 11px; }
+.jv-achado b { font-size: 13.5px; }
+.jv-tag { display: inline-block; font-size: 12.5px; font-weight: 800; background: var(--nevoa);
+  border-radius: 9px; padding: 5px 10px; margin: 7px 6px 0 0; color: var(--tinta); }
+.jv-mudo { font-size: 12.5px; color: var(--tinta-3); margin: 9px 0 0; }
+.jv-menos { background: #E9F5EF; border-radius: 15px; padding: 13px; }
+.jv-menos b { font-family: 'Baloo 2', sans-serif; font-weight: 600; font-size: 16px; color: var(--musgo); }
+.jv-menos > p { font-size: 13.5px; margin: 4px 0 10px; }
+.jv-ops { display: flex; flex-direction: column; gap: 7px; }
+.jv-op { font: inherit; text-align: left; cursor: pointer; background: var(--papel); border: 0;
+  border-radius: 12px; padding: 11px 12px; font-size: 13.5px; font-weight: 700; color: var(--tinta); }
+.jv-sub { font-family: 'Baloo 2', sans-serif; font-weight: 600; font-size: 17px; color: var(--musgo);
+  margin: 18px 0 6px; }
+.jv-sw { display: flex; align-items: center; gap: 10px; background: var(--papel);
+  border-radius: 15px; padding: 12px 13px; margin-bottom: 7px; }
+.jv-sw b { display: block; font-size: 14px; font-weight: 800; }
+.jv-sw span { display: block; font-size: 12px; color: var(--tinta-3); }
+.jv-toggle { margin-left: auto; width: 44px; height: 25px; border-radius: 999px; border: 0;
+  background: #B4BFBC; position: relative; cursor: pointer; flex: none; padding: 0; }
+.jv-toggle i { position: absolute; top: 3px; left: 3px; width: 19px; height: 19px;
+  border-radius: 50%; background: #FFFFFF; }
+.jv-sw[data-on="1"] .jv-toggle { background: var(--musgo); }
+.jv-sw[data-on="1"] .jv-toggle i { left: 22px; }
+.jv-cadeado { margin-left: auto; font-size: 16px; }
+
 /* ---- o que atrapalhou (criança) ---- */
 .atrap { padding: 4px 2px 10px; }
 .atrap-tit { font-family: 'Baloo 2', sans-serif; font-weight: 600; font-size: 26px;
@@ -1274,6 +1377,15 @@ const NIVEIS = {
     porPasso: 1, bonus: 8, faisca: false, listaLivre: true, botao: "Concluído",
     festaTitulo: "Rotina concluída", confete: false,
   },
+  /* O nível 4 não é mais um degrau no mesmo eixo. Os três primeiros variam o
+     tamanho do passo; este varia quem é o dono da rotina. Por isso não tem
+     moeda: a recompensa aqui é o app sair da frente. */
+  4: {
+    id: 4, idade: "13+", nome: "Por conta própria", moeda: null,
+    resumo: "O app passa a ser dele. Ele monta a rotina e decide o que você vê.",
+    porPasso: 0, bonus: 0, faisca: false, listaLivre: true, botao: "Feito",
+    festaTitulo: "", confete: false,
+  },
 };
 
 const MOMENTOS = [
@@ -1664,6 +1776,10 @@ const PADRAO = {
   nome: "amigo", avatar: "a", nivel: null, estrelas: 0,
   feitos: {}, autonomia: {}, hoje: [], dia: "", calmo: false, som: true,
   ajustes: {}, custom: [], prova: false, diario: [],
+  /* Quais tarefas foram cumpridas em cada dia, até 90 dias. `feitos` só tem
+     o total acumulado, e a fita do nível 4 precisa saber quando. */
+  historico: [],
+  ...PADRAO_N4,
 };
 
 /* A lista viva de tarefas: as de fábrica com os ajustes do responsável
@@ -1738,7 +1854,7 @@ function ajustar(d, t, mudanca) {
   return { custom: (d.custom || []).map((x) => (x.id === t.id ? { ...x, ...mudanca } : x)) };
 }
 
-export default function App() {
+export default function App({ licenca = null }) {
   const [d, setD] = useState(PADRAO);
   const [carregado, setCarregado] = useState(false);
   const [abertura, setAbertura] = useState("visivel");
@@ -1786,7 +1902,19 @@ export default function App() {
         if (r) {
           const s = JSON.parse(r.value);
           calmo = !!s.calmo;
-          setD({ ...PADRAO, ...s, hoje: s.dia === hojeStr ? s.hoje || [] : [], dia: hojeStr });
+          /* Na virada do dia, o que foi cumprido ontem vai para o histórico.
+             Sem isso não existe memória de QUANDO uma tarefa aconteceu —
+             `feitos` só conta o total, e a fita do nível 4 precisa dos dias.
+             Noventa dias chegam para as seis semanas da oferta de "menos
+             app" e param de crescer sozinhos. */
+          const virou = s.dia && s.dia !== hojeStr;
+          const historico = virou && (s.hoje || []).length
+            ? [...(s.historico || []), { dia: s.dia, feitas: s.hoje }].slice(-90)
+            : s.historico || [];
+          setD({
+            ...PADRAO, ...s, historico,
+            hoje: s.dia === hojeStr ? s.hoje || [] : [], dia: hojeStr,
+          });
         }
       } catch (e) {}
       try { setContatos(await carregarContatos()); } catch (e) {}
@@ -1944,6 +2072,28 @@ export default function App() {
 
   /* As notas que a criança deixou nos últimos dias e que o adulto ainda não
      abriu no assistente. É a ponte entre as duas telas. */
+  /* ------------------------------------------------------------ nível 4 */
+
+  /* A licença decide se o nível 4 existe nesta instalação. Na clínica é
+     decisão dela, e é binária: ou o paciente é dono do app, ou não é. */
+  const temNivel4 = permiteNivel4(licenca);
+  const souDono = ehDono(d);
+  const vistaDoAdulto = adultoVe(d);
+  const deQuem = (contatos.lista || []).find((c) => c.nome)?.nome || "";
+
+  function passarOApp() {
+    salvar(passar({ ...d, nivel: NIVEL4 }));
+    setTela("casa");
+  }
+  function devolverOApp() {
+    /* Invariante: a retomada deixa rastro, e o rastro é para o jovem. */
+    salvar(retomar({ ...d, nivel: 3 }, hojeStr));
+    setTela("casa");
+  }
+  function pedirOApp() {
+    salvar(pedir(d, hojeStr));
+  }
+
   const recados = (notas.lista || [])
     .filter((n) => n.fonte === "crianca" && n.tarefa)
     .slice(-4)
@@ -2022,6 +2172,14 @@ export default function App() {
     : doMomento;
 
   const proxima = daVez.find((t) => !d.hoje.includes(t.id));
+
+  /* No nível 4 não há abas de momento: o dia inteiro em uma lista só. Quem
+     organiza a própria rotina não precisa que o app a fatie por ele. */
+  const doDiaInteiro = lista
+    .filter((t) => !t.oculta)
+    .filter((t) => !t.dias || t.dias.includes(diaSemana))
+    .filter((t) => !t.prova || d.prova)
+    .sort(ordemHorario);
   const cls = "rt nv" + N.id
     + (aj.calmo ? " calmo" : "")
     + (aj.leitura ? " leitura" : "")
@@ -2079,6 +2237,63 @@ export default function App() {
     );
   }
 
+  /* ---------- nível 4: o app tem outro dono ---------- */
+
+  /* A retomada não é silenciosa: antes de qualquer outra tela, o jovem é
+     avisado de que o app voltou. Autonomia revogável em segredo ensina que
+     o controle era da boca para fora. */
+  if (d.retomadoEm) {
+    return (
+      <div className={cls}>
+        <style>{CSS}</style>
+        <div className="tela">
+          <AvisoRetomada em={d.retomadoEm} aoEntender={() => salvar(viuRetomada(d))} />
+        </div>
+      </div>
+    );
+  }
+
+  if (tela === "passagem") {
+    return (
+      <div className={cls}>
+        <style>{CSS}</style>
+        <div className="tela">
+          <PassagemAdulto nome={d.nome} aoPassar={() => setTela("passagem-jovem")}
+            aoCancelar={() => setTela("pais")} />
+        </div>
+      </div>
+    );
+  }
+  if (tela === "passagem-jovem") {
+    return (
+      <div className={cls}>
+        <style>{CSS}</style>
+        <div className="tela">
+          <PassagemJovem nome={d.nome} deQuem={deQuem} aoComecar={passarOApp} />
+        </div>
+      </div>
+    );
+  }
+
+  if (souDono && tela === "casa") {
+    return (
+      <div className={cls}>
+        <style>{CSS}</style>
+        <div className="tela">
+          <Jovem
+            d={d} tarefas={doDiaInteiro} hoje={hojeStr} notas={notas.lista || []} deQuem={deQuem}
+            aoAbrir={abrir}
+            aoNova={() => { setRascunho(novaTarefa("manha")); setTela("editar"); }}
+            aoVirarPartilha={(canal) => salvar(virarPartilha(d, canal))}
+            aoNotas={() => setTela("notas")}
+            aoMenos={(t, escolha) => salvar({ ...d, ...ajustar(d, t, aplicarMenos(escolha)) })}
+            aoDevolver={devolverOApp}
+          />
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className={cls}>
       <style>{CSS}</style>
@@ -2127,6 +2342,15 @@ export default function App() {
 
           {d.prova && momento === "noite" && (
             <div className="faixa-prova">📚 Semana de prova — o estudo entra na rotina</div>
+          )}
+
+          {/* Pedir o app para si. Quem decide continua sendo o adulto — mas
+              sem isto o jovem não tem nem como levantar o assunto, e pedir
+              já é o exercício que o nível 4 existe para sustentar. */}
+          {temNivel4 && N.id === 3 && !souDono && (
+            <button className="pedir" onClick={pedirOApp} disabled={Boolean(d.pedido)}>
+              {d.pedido ? "Você pediu. Agora é com quem cuida de você." : "Quero este app para mim"}
+            </button>
           )}
 
           <div className="grade">
@@ -2571,7 +2795,7 @@ export default function App() {
           {/* O que a criança contou. Fica em cima porque é a única coisa aqui
               que veio dela, e porque é o caminho mais curto até um ajuste que
               resolve. Abrir daqui já leva a resposta dela para o assistente. */}
-          {recados.length > 0 && (
+          {vistaDoAdulto.travamentos && recados.length > 0 && (
             <div className="recados">
               <div className="linha-nome" style={{ marginBottom: 6 }}>O que ela contou</div>
               {recados.map((n) => {
@@ -2606,7 +2830,30 @@ export default function App() {
                   </span>
                 </button>
               ))}
+              {/* O nível 4 só aparece se a licença permitir, e não é um
+                  toque como os outros: leva para a passagem, que explica o
+                  que o adulto está abrindo mão antes de confirmar. */}
+              {temNivel4 && (
+                <button className="nivel" data-on={0} onClick={() => setTela("passagem")}>
+                  <span className="nivel-idade">{NIVEIS[4].idade}<small>ANOS</small></span>
+                  <span>
+                    <span className="nivel-nome">{NIVEIS[4].nome}</span>
+                    <span className="nivel-desc">{NIVEIS[4].resumo}</span>
+                  </span>
+                </button>
+              )}
             </div>
+            {temNivel4 && d.pedido && (
+              <div className="pedido">
+                <div>
+                  <b>{d.nome !== "amigo" ? d.nome : "Ele"} pediu para ter o app.</b>
+                  <span>Em {d.pedido}. Quem decide é você.</span>
+                </div>
+                <button className="btn-mini-largo" onClick={() => setTela("passagem")}>Ver</button>
+                <button className="btn-mini" aria-label="Dispensar o pedido"
+                  onClick={() => salvar(limparPedido(d))}>✕</button>
+              </div>
+            )}
           </div>
 
           <div>
@@ -2800,9 +3047,19 @@ export default function App() {
           <button className="btn-plano" onClick={() => setTela("contatos")}>
             Adultos que a criança pode chamar
           </button>
-          <button className="btn-plano" onClick={() => setTela("notas")}>
-            O que eu noto, e o resumo para a consulta
-          </button>
+          {/* O caderno passa a ser dele no nível 4, e não há interruptor
+              para abrir: o adulto não entra. O resumo da consulta, quando
+              houver, quem gera e entrega é o jovem. */}
+          {vistaDoAdulto.notas ? (
+            <button className="btn-plano" onClick={() => setTela("notas")}>
+              O que eu noto, e o resumo para a consulta
+            </button>
+          ) : (
+            <p className="aviso">
+              O caderno agora é {d.nome !== "amigo" ? "d" + (d.nome.endsWith("a") ? "a " : "o ") + d.nome : "dele"}.
+              Enquanto o app for dele, as anotações não abrem por aqui.
+            </p>
+          )}
           <button className="btn-plano" onClick={() => salvar({ ...d, hoje: [], dia: hojeStr })}>
             Liberar as rotinas de hoje de novo
           </button>

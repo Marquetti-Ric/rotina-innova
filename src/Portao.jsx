@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import App from './App.jsx';
 import { conferir, ativar, extrair } from './licenca';
+import { avisoDeLicencaPara } from './nivel4.js';
 import { checar, adiar, baixar } from './atualizacao';
 import { marca } from './marca';
 
@@ -77,10 +78,15 @@ export default function Portao() {
   const [erro, setErro] = useState('');
   const [enviando, setEnviando] = useState(false);
   const [atualizacao, setAtualizacao] = useState(null);
+  /* A licença chega ao App porque ela decide duas coisas lá dentro: se o
+     nível 4 existe para esta instalação, e para quem vai o aviso de
+     vencimento. Nenhuma das duas é propriedade da rotina. */
+  const [licenca, setLicenca] = useState(null);
 
   useEffect(() => {
     (async () => {
       const r = await conferir();
+      if (r.licenca) setLicenca(r.licenca);
       if (r.estado === 'sem-licenca') setEstado('ativar');
       else if (r.estado === 'bloqueada') setEstado('bloqueada');
       else {
@@ -203,14 +209,21 @@ export default function Portao() {
 
   return (
     <>
-      <App />
+      <App licenca={licenca} />
 
       {carencia && (
         <div className="pt-faixa">
           <style>{CSS}</style>
           <span className="pt-faixa-txt">
             Acesso vence em {carencia.diasRestantes} {carencia.diasRestantes === 1 ? 'dia' : 'dias'}
-            <small>Fale com a clínica para renovar.</small>
+            {/* Quem renova é o titular da licença. Numa licença de clínica a
+                família não consegue renovar, então mandá-la "renovar" é
+                mandar fazer o que ela não pode. */}
+            <small>
+              {avisoDeLicencaPara(licenca) === 'clinica'
+                ? 'Fale com a clínica para renovar.'
+                : 'Renove na loja para continuar usando.'}
+            </small>
           </span>
           <button className="ignorar" onClick={() => setCarencia(null)}>Ok</button>
         </div>
