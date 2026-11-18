@@ -112,6 +112,43 @@ vive. Um teste de triagem dentro do app — ainda que com aviso de que só o
 especialista diagnostica — muda a finalidade e leva a registro, responsável
 técnico e custo. Não acrescentar sem decisão explícita e parecer.
 
+### O assistente de ajuste — quatro invariantes
+
+O perfil era preenchido uma vez, na identificação, e nunca mais usado para
+resolver um problema concreto. O assistente é a conversa que liga "esta tarefa
+está travando" a "então mude isto", e tem duas portas: `Ajuste.jsx` para o
+responsável e `Atrapalhou.jsx` para a criança.
+
+1. **A saída é mudança no app, nunca conselho sobre a criança.** Toda proposta
+   cai em `d.ajustes[tarefa]` ou em `apoio.manual`, que já existiam. "Quebrar o
+   passo em dois" é configuração de organizador de rotina; "ela parece
+   desregulada à noite" seria leitura clínica, e é a mesma fronteira da RDC 657
+   que vale para o caderno.
+2. **A criança não liga ajuste nenhum.** O que ela escolhe em `Atrapalhou`
+   chega ao assistente do adulto como ponto de partida, e quem decide é ele.
+   É a invariante do `apoio.js` de novo: a escolha manual vence a derivada.
+3. **A pergunta dela é "o que atrapalhou", nunca "por que você não fez".** A
+   primeira põe o problema fora dela; a segunda é acusação, e para quem falha
+   na mesma tarefa todo dia a diferença não é de estilo. É oferecido uma vez
+   por tarefa por dia, "não quero dizer" é resposta inteira, e há teste
+   varrendo o vocabulário como no caderno.
+4. **Nada sai do aparelho.** Árvore de decisão, sem rede e sem modelo de
+   linguagem. Nenhum consentimento novo, nenhum custo por família, e a página
+   de privacidade continua verdadeira.
+
+Três coisas aprendidas construindo, que não se descobrem lendo o código:
+
+- **"Passos menores" não é conteúdo novo.** Toda tarefa de fábrica já traz as
+  três quebras (`n.1`, `n.2`, `n.3`). A proposta empresta a do nível abaixo só
+  naquela tarefa, por `passosNivel` — texto já escrito e já no tom certo.
+- **Mover o horário só vale dentro do mesmo momento do dia.** A primeira versão
+  escolhia a tarefa mais distante no relógio, e o app propôs mover "se arrumar"
+  das 07:00 para as 21:30, junto da hora de dormir. Fora do momento não é
+  ajuste, é outra rotina.
+- **Não propor o que já está ligado.** `derivarAjustes` já entrega muita coisa
+  por perfil; sugerir o que a pessoa já tem faz o assistente parecer que não
+  olhou.
+
 ### Mais cinco coisas que não se mexem
 
 - **A prancha fala sempre**, mesmo com a narração automática desligada no perfil
@@ -163,7 +200,7 @@ percebe e abandona.
 
 ```bash
 npm run build     # tem de passar sem avisos
-npm run teste     # 306 verificações, em nove suítes
+npm run teste     # 372 verificações, em dez suítes
 ```
 
 As suítes, se precisar rodar uma só: `teste:fluxo` (ativação → níveis → rotina →
@@ -171,9 +208,10 @@ atualização), `teste:portao` (a tela de código: colar, erros e contraste),
 `teste:contatos`, `teste:apoio` (a derivação dos ajustes),
 `teste:identificacao` (da tela ao app aplicando o perfil), `teste:modulos`
 (prancha e sentimentos), `teste:notas` (o caderno e o resumo),
-`teste:pausas` (as quatro cenas do corpo) e `teste:contraste` (a paleta).
+`teste:pausas` (as quatro cenas do corpo), `teste:ajuste` (o assistente e o
+check-in da criança) e `teste:contraste` (a paleta).
 
-As oito primeiras são testes de renderização de verdade, com jsdom: o projeto
+As nove primeiras são testes de renderização de verdade, com jsdom: o projeto
 já teve um erro de inicialização que passou pela checagem de sintaxe e só
 apareceu na tela. A nona lê o CSS do fonte e faz a conta da WCAG.
 
@@ -195,6 +233,9 @@ src/Adultos.jsx       → "Meus adultos": a tela de pedir ajuda
 src/Prancha.jsx       → prancha de CAA, com o vocabulário-núcleo
 src/Sentimentos.jsx   → check-in de emoções e respiração
 src/pausas.jsx        → as quatro pausas do corpo, desenhadas e animadas
+src/ajuste.js         → o assistente: pontos, sondas, propostas e aplicação
+src/Ajuste.jsx        → "Vamos ajustar juntos" (responsável)
+src/Atrapalhou.jsx    → "O que atrapalhou?" (criança), com os nove desenhos
 src/notas.js          → caderno de observação e montagem do resumo
 src/Notas.jsx         → "O que eu noto"
 src/Relatorio.jsx     → o resumo para levar na consulta

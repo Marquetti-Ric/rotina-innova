@@ -21,7 +21,10 @@ import Sentimentos, { EMOCOES } from "./Sentimentos.jsx";
 import Pausa, { PAUSAS_CORPO } from "./pausas.jsx";
 import Notas from "./Notas.jsx";
 import Relatorio from "./Relatorio.jsx";
-import { PADRAO_NOTAS, carregarNotas, gravarNotas } from "./notas.js";
+import { PADRAO_NOTAS, carregarNotas, gravarNotas, novaNota } from "./notas.js";
+import Ajuste from "./Ajuste.jsx";
+import Atrapalhou from "./Atrapalhou.jsx";
+import { notaDaCrianca, ATRAPALHOU } from "./ajuste.js";
 
 /* ============================================================
    ROTINA — jogo de rotinas diárias para crianças com TEA
@@ -61,6 +64,10 @@ const CSS = `
      a versão escura para quando a cor precisa ser lida, e a tinta forte
      para quando o texto cai sobre a cor. */
   --damasco-txt: #8A5A20;
+  /* Borda de controle desenhado só por contorno: a WCAG pede 3:1 contra o
+     que estiver atrás. O cinza claro que estava aqui dava 1,75:1, e o botão
+     sumia justamente na tela em que a criança precisa achá-lo. */
+  --borda-ctrl:  #76827F;
   --coral-txt:   #945663;
   --coral-borda: #CC7788;
   --tinta-forte: #213B37;
@@ -565,6 +572,72 @@ h1, h2, h3, .display { font-family: 'Baloo 2', ui-rounded, system-ui, sans-serif
   font-family: 'Nunito', sans-serif; font-size: 13px; font-weight: 700; text-align: left; }
 .etiqueta[data-on="1"] { border-color: var(--folha); background: #EAF6F0; color: #1F4A43; }
 .campo.area { min-height: 84px; resize: vertical; line-height: 1.5; }
+/* ---- o que atrapalhou (criança) ---- */
+.atrap { padding: 4px 2px 10px; }
+.atrap-tit { font-family: 'Baloo 2', sans-serif; font-weight: 600; font-size: 26px;
+  color: var(--tinta); margin: 6px 0 2px; }
+.atrap-sub { font-size: 14.5px; color: var(--tinta-3); margin: 0 0 14px; }
+.atrap-grade { display: grid; grid-template-columns: repeat(3, 1fr); gap: 9px; }
+.atrap-op { font: inherit; cursor: pointer; background: var(--papel); border: 3px solid transparent;
+  border-radius: 18px; padding: 9px 4px 8px; text-align: center; box-shadow: var(--sombra); }
+.atrap-op[aria-pressed="true"] { border-color: var(--folha); }
+.atrap-op svg { display: block; margin: 0 auto; }
+.atrap-op span { display: block; font-size: 11.5px; font-weight: 800; line-height: 1.24;
+  margin-top: 4px; color: var(--tinta); }
+/* Um botão só, que muda de palavra conforme ela escolheu alguma coisa: duas
+   saídas lado a lado fazem a criança escolher entre botões antes de escolher
+   o que sentiu. */
+.atrap-pronto { margin-top: 14px; width: 100%; font: inherit; font-weight: 800; font-size: 15px;
+  cursor: pointer; background: transparent; border: 2px solid var(--borda-ctrl); border-radius: 14px;
+  padding: 13px; color: var(--tinta-3); }
+.atrap-pronto[data-tem="1"] { border-color: var(--folha); color: var(--musgo); background: var(--papel); }
+
+/* ---- vamos ajustar juntos (responsável) ---- */
+.aj { padding: 2px 2px 12px; }
+.aj-topo { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
+.aj-topo b { font-family: 'Baloo 2', sans-serif; font-weight: 600; font-size: 19px; color: var(--musgo); }
+.aj-topo .btn-x { margin-left: auto; }
+.aj-passos { display: flex; gap: 5px; margin-bottom: 14px; }
+.aj-passos i { height: 4px; border-radius: 9px; background: #C9D6D2; flex: 1; }
+.aj-passos i.on { background: var(--musgo); }
+.aj-perg { font-family: 'Baloo 2', sans-serif; font-weight: 600; font-size: 21px; line-height: 1.26;
+  color: var(--tinta); margin: 0 0 6px; }
+.aj-porque { font-size: 13px; color: var(--grafite); margin: 0 0 11px;
+  border-left: 3px solid var(--damasco); padding-left: 9px; }
+.aj-porque em { display: block; font-style: normal; font-weight: 800; font-size: 10.5px;
+  letter-spacing: .09em; text-transform: uppercase; color: var(--damasco-txt); margin-bottom: 1px; }
+.aj-dica { font-size: 13px; color: var(--tinta-3); margin: 0 0 11px; }
+.aj-dacrianca { font-size: 13.5px; color: var(--musgo); background: #E9F5EF; border-radius: 12px;
+  padding: 9px 11px; margin: 0 0 12px; font-weight: 700; }
+.aj-ops { display: flex; flex-direction: column; gap: 8px; }
+.aj-op { font: inherit; text-align: left; cursor: pointer; background: var(--papel);
+  border: 2px solid transparent; border-radius: 16px; padding: 13px 14px; color: var(--tinta);
+  box-shadow: var(--sombra); width: 100%; }
+.aj-op b { display: block; font-weight: 800; font-size: 15.5px; }
+.aj-op span { display: block; font-size: 12.5px; color: var(--tinta-3); margin-top: 1px; }
+.aj-prop { background: var(--papel); border-radius: 16px; padding: 13px 14px; margin-bottom: 9px;
+  box-shadow: var(--sombra); }
+.aj-prop h4 { font-family: 'Baloo 2', sans-serif; font-weight: 600; font-size: 17px;
+  margin: 0 0 5px; color: var(--tinta); }
+.aj-pq { font-size: 13px; color: var(--tinta-3); margin: 0 0 9px; }
+.aj-ef { font-size: 12.5px; font-weight: 800; color: var(--damasco-txt); background: #FFF3E4;
+  border-radius: 9px; padding: 7px 10px; }
+.aj-linha { display: flex; align-items: center; gap: 9px; margin-top: 10px; }
+.aj-lig { font: inherit; font-weight: 800; font-size: 14px; cursor: pointer; border: 0;
+  border-radius: 11px; padding: 9px 16px; background: var(--damasco); color: var(--tinta-forte); }
+.aj-lig[aria-pressed="true"] { background: var(--folha); color: var(--tinta-forte); }
+.aj-onde { font-size: 11.5px; color: var(--grafite); font-weight: 700; }
+.aj-txt { font-size: 15px; color: var(--tinta-3); margin: 0 0 16px; }
+
+/* ---- os recados da criança, na área dos responsáveis ---- */
+.recados { background: #E9F5EF; border-radius: 18px; padding: 12px 13px; margin-bottom: 14px; }
+.recado { display: flex; align-items: center; gap: 10px; padding: 7px 0; }
+.recado + .recado { border-top: 1px solid #CFE3DA; }
+.recado-txt { font-size: 13.5px; color: var(--tinta); line-height: 1.4; }
+.btn-mini-largo { font: inherit; font-weight: 800; font-size: 13px; cursor: pointer; border: 0;
+  border-radius: 10px; padding: 8px 13px; background: var(--musgo); color: #FFFFFF;
+  margin-left: auto; white-space: nowrap; }
+
 .notas { display: flex; flex-direction: column; gap: 10px; }
 .nota { border: none; cursor: pointer; background: var(--papel); border-radius: 20px;
   padding: 13px 15px; box-shadow: var(--sombra); display: flex; flex-direction: column;
@@ -1600,7 +1673,11 @@ function todasTarefas(d) {
   return [...base, ...(d.custom || [])];
 }
 function passosDe(t, nivel) {
-  const base = t.n ? t.n[nivel] : t.passos || [];
+  /* `passosNivel` vem do assistente de ajuste: usa a quebra de passos de um
+     nível abaixo só nesta tarefa. Não é conteúdo novo — toda tarefa de
+     fábrica já traz as três quebras escritas. */
+  const n = t.passosNivel && t.n && t.n[t.passosNivel] ? t.passosNivel : nivel;
+  const base = t.n ? t.n[n] : t.passos || [];
   if (!t.duracao) return base;
   /* A duração da tarefa vira o cronômetro do passo principal:
      o único passo, ou o primeiro que ainda não tem tempo próprio. */
@@ -1688,6 +1765,15 @@ export default function App() {
      as palavras dela em vez da mensagem padrão. */
   const [fraseDita, setFraseDita] = useState("");
   const [notas, setNotas] = useState(PADRAO_NOTAS);
+  /* O assistente de ajuste: a tarefa em questão e, quando vem do check-in da
+     criança, o que ela já contou. `inicioAjuste` é só ponto de partida — nada
+     do que ela escolheu liga ajuste sozinho. */
+  const [alvoAjuste, setAlvoAjuste] = useState(null);
+  const [inicioAjuste, setInicioAjuste] = useState([]);
+  /* A tarefa que a criança deixou pela metade, para oferecer o "o que
+     atrapalhou". Oferecido uma vez por tarefa por dia: perguntar de novo
+     vira cobrança. */
+  const [alvoAtrapalhou, setAlvoAtrapalhou] = useState(null);
 
   const hojeStr = new Date().toISOString().slice(0, 10);
   const abertoEm = useRef(Date.now());
@@ -1742,6 +1828,8 @@ export default function App() {
       else if (pausa) setPausa(false);
       else if (tela === "relatorio") setTela("notas");
       else if (tela === "rotinas" || tela === "contatos" || tela === "apoio" || tela === "notas") setTela("pais");
+      else if (tela === "atrapalhou") { setAlvoAtrapalhou(null); setTela("casa"); }
+      else if (tela === "ajuste") { setAlvoAjuste(null); setInicioAjuste([]); setTela("rotinas"); }
       else if (tela === "prancha" || tela === "sentimentos") setTela("casa");
       else if (tela !== "casa") setTela("casa");
       else AppNativo.exitApp();
@@ -1816,7 +1904,50 @@ export default function App() {
   function abrir(id) {
     setTarefaId(id); setPasso(0); setMarcados([]); setCronometro(null); setEscolhido(null);
     setPerguntaAuto(false); setTela("tarefa");
+    /* `pausaAntes` vem do assistente de ajuste: gastar o corpo antes de pedir
+       atenção. Entra como passo zero, e a criança fecha quando quiser. */
+    const alvo = lista.find((t) => t.id === id);
+    if (alvo && alvo.pausaAntes) {
+      setPausaIdx(Math.floor(Math.random() * PAUSAS_CORPO.length));
+      setPausa(true);
+    }
   }
+
+  /* Quando ela sai de uma tarefa pela metade. Não é falha registrada: é a
+     chance de ela contar o que ficou no caminho, se quiser. */
+  function sairDaTarefa() {
+    const comecou = passo > 0 || marcados.length > 0;
+    const jaHoje = (d.atrapalhouEm || {})[tarefa.id] === hojeStr;
+    if (comecou && !jaHoje && !d.hoje.includes(tarefa.id)) {
+      setAlvoAtrapalhou(tarefa);
+      setTela("atrapalhou");
+      return;
+    }
+    setTela("casa");
+  }
+
+  /* O que a criança contou vira nota atribuída a ela, e nada mais: o ajuste
+     quem decide é o adulto, na área dele. */
+  function responderAtrapalhou(escolhas) {
+    const t = alvoAtrapalhou;
+    salvarNotas({ ...notas, lista: [...notas.lista, { ...novaNota("rotina", t.id), ...notaDaCrianca(escolhas, t) }] });
+    salvar({ ...d, atrapalhouEm: { ...(d.atrapalhouEm || {}), [t.id]: hojeStr } });
+    setAlvoAtrapalhou(null);
+    setTela("casa");
+  }
+
+  function pularAtrapalhou() {
+    salvar({ ...d, atrapalhouEm: { ...(d.atrapalhouEm || {}), [alvoAtrapalhou.id]: hojeStr } });
+    setAlvoAtrapalhou(null);
+    setTela("casa");
+  }
+
+  /* As notas que a criança deixou nos últimos dias e que o adulto ainda não
+     abriu no assistente. É a ponte entre as duas telas. */
+  const recados = (notas.lista || [])
+    .filter((n) => n.fonte === "crianca" && n.tarefa)
+    .slice(-4)
+    .reverse();
 
   /* A voz lê o passo que está na tela. Tudo que ela fala também está escrito:
      a narração é apoio, nunca o único caminho. */
@@ -2085,7 +2216,7 @@ export default function App() {
       {tela === "tarefa" && tarefa && (
         <div className="tela">
           <div className="barra">
-            <button className="btn-x" onClick={() => setTela("casa")} aria-label="Voltar para a lista">✕</button>
+            <button className="btn-x" onClick={sairDaTarefa} aria-label="Voltar para a lista">✕</button>
             <span className="barra-titulo">{tarefa.nome}</span>
             {/* Travar num passo é exatamente quando ela precisa de alguém. */}
             {temAdultos && (
@@ -2233,6 +2364,11 @@ export default function App() {
                       {t.oculta ? "○" : "✓"}
                     </button>
                     <button className="btn-mini" aria-label="Editar" onClick={() => { setRascunho(paraRascunho(t)); setTela("editar"); }}>✎</button>
+                    {/* O assistente: para quando a tarefa existe e está certa,
+                        mas não acontece. Editar muda o que a tarefa é;
+                        ajustar muda como o app a apresenta. */}
+                    <button className="btn-mini" aria-label={`Ajustar: ${t.nome} está travando`}
+                      onClick={() => { setAlvoAjuste(t); setInicioAjuste([]); setTela("ajuste"); }}>⚙</button>
                   </div>
                 ))}
               </div>
@@ -2431,6 +2567,32 @@ export default function App() {
             <span className="barra-titulo">Área dos responsáveis</span>
             <span className="contador" />
           </div>
+
+          {/* O que a criança contou. Fica em cima porque é a única coisa aqui
+              que veio dela, e porque é o caminho mais curto até um ajuste que
+              resolve. Abrir daqui já leva a resposta dela para o assistente. */}
+          {recados.length > 0 && (
+            <div className="recados">
+              <div className="linha-nome" style={{ marginBottom: 6 }}>O que ela contou</div>
+              {recados.map((n) => {
+                const t = lista.find((x) => x.id === n.tarefa);
+                if (!t) return null;
+                return (
+                  <div className="recado" key={n.id}>
+                    <div className="recado-txt"><b>{t.nome}</b> — {n.texto}</div>
+                    <button className="btn-mini-largo"
+                      onClick={() => {
+                        setAlvoAjuste(t);
+                        setInicioAjuste(ATRAPALHOU.filter((o) => n.texto.toLowerCase().includes(o.rotulo.toLowerCase())).map((o) => o.id));
+                        setTela("ajuste");
+                      }}>
+                      Ajustar
+                    </button>
+                  </div>
+                );
+              })}
+            </div>
+          )}
 
           <div>
             <div className="linha-nome" style={{ marginBottom: 8 }}>Nível por idade</div>
@@ -2687,6 +2849,28 @@ export default function App() {
 
       {tela === "relatorio" && (
         <Relatorio estado={d} notas={notas} tarefas={lista} voltar={() => setTela("notas")} />
+      )}
+
+      {/* ---------- O QUE ATRAPALHOU (criança) ---------- */}
+      {tela === "atrapalhou" && alvoAtrapalhou && (
+        <div className="tela">
+          <Atrapalhou apoio={apoio} tarefa={alvoAtrapalhou} voz={aj.voz}
+            aoResponder={responderAtrapalhou} aoPular={pularAtrapalhou} />
+        </div>
+      )}
+
+      {/* ---------- VAMOS AJUSTAR JUNTOS (responsável) ---------- */}
+      {tela === "ajuste" && alvoAjuste && (
+        <div className="tela">
+          <Ajuste d={d} apoio={apoio} tarefa={alvoAjuste} nivel={N.id} tarefas={lista}
+            inicio={inicioAjuste}
+            aoGravar={({ d: novoD, apoio: novoApoio, nota }) => {
+              salvar(novoD);
+              salvarApoio(novoApoio);
+              salvarNotas({ ...notas, lista: [...notas.lista, { ...novaNota("rotina", alvoAjuste.id), ...nota }] });
+            }}
+            voltar={() => { setAlvoAjuste(null); setInicioAjuste([]); setTela("rotinas"); }} />
+        </div>
       )}
 
       {/* ---------- PAUSA DO CORPO ---------- */}

@@ -130,6 +130,17 @@ ok('branco sobre --musgo'.padEnd(32), razao('#FFFFFF', cor('musgo')) >= 4.5,
 console.log('\n— borda de controle (3:1) —');
 ok('--coral-borda no branco'.padEnd(32), razao(cor('coral-borda'), '#FFFFFF') >= 3,
   `${razao(cor('coral-borda'), '#FFFFFF').toFixed(2)}:1`);
+/* Um botão desenhado só por contorno some se a borda não fechar 3:1, e o
+   caso que doeu foi o "não quero dizer" do check-in da criança. */
+{
+  let pior = Infinity;
+  let onde = '';
+  for (const f of CLARAS) {
+    const r = razao(cor('borda-ctrl'), f);
+    if (r < pior) { pior = r; onde = f; }
+  }
+  ok('--borda-ctrl em claro'.padEnd(32), pior >= 3, `pior ${pior.toFixed(2)}:1 em ${onde}`);
+}
 
 console.log('\n— cor de superfície não vira cor de texto —');
 for (const nome of SO_SUPERFICIE) {
