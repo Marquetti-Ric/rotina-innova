@@ -75,8 +75,10 @@ function arquivos() {
     for (const e of readdirSync(dir, { withFileTypes: true })) {
       const p = resolve(dir, e.name);
       if (e.isDirectory()) {
-        /* `textos/` é o destino da migração, não a origem. */
-        if (e.name !== 'textos') andar(p);
+        /* `textos/` e `conteudo/` são o destino da migração, não a origem:
+           ali o português é o conteúdo em português, e é para ficar. Um
+           idioma novo escreve o arquivo dele ao lado. */
+        if (e.name !== 'textos' && e.name !== 'conteudo') andar(p);
       } else if (/\.(jsx?|mjs)$/.test(e.name)) {
         /* `idioma.js` guarda os nomes das línguas, e nome de língua se
            escreve na própria língua: "Español" não vira "Espanhol". */

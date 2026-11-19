@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { tx } from "./idioma.js";
 import { Avatar } from "./avatar.jsx";
 import { ligar, conversar, temWhatsapp, visiveisParaCrianca, comClinica } from "./contatos.js";
 import { marca } from "./marca";
@@ -67,12 +68,8 @@ export default function Adultos({ contatos, voltar, nivel, frase }) {
       {lista.length === 0 ? (
         <div className="vazio-adultos">
           <Avatar id="a" tam={74} />
-          <p className="linha-nome" style={{ fontSize: 19 }}>
-            Ainda não tem ninguém aqui.
-          </p>
-          <p className="linha-desc">
-            Um adulto pode cadastrar quem você chama, na área dos responsáveis.
-          </p>
+          <p className="linha-nome" style={{ fontSize: 19 }}>{tx("adultos.vazio.titulo")}</p>
+          <p className="linha-desc">{tx("adultos.vazio.texto")}</p>
         </div>
       ) : (
         <div className="adultos">
@@ -116,12 +113,11 @@ export default function Adultos({ contatos, voltar, nivel, frase }) {
           <div className="folha" role="group" aria-label="Confirmar">
             <Avatar id={confirmar.avatar} tam={72} />
             <h2 className="folha-titulo">
-              {confirmar.como === "ligar" ? "Ligar" : "Mandar mensagem"} para {confirmar.nome}?
+              {tx(confirmar.como === "ligar" ? "adultos.confirmar.ligar" : "adultos.confirmar.mensagem",
+                { nome: confirmar.nome })}
             </h2>
             <p className="folha-sub">
-              {confirmar.como === "ligar"
-                ? "O telefone vai abrir com o número pronto."
-                : "O WhatsApp vai abrir com a mensagem escrita. Depois é só apertar enviar."}
+              {tx(confirmar.como === "ligar" ? "adultos.aviso.ligar" : "adultos.aviso.mensagem")}
             </p>
             <div className="folha-btns">
               <button
@@ -134,11 +130,9 @@ export default function Adultos({ contatos, voltar, nivel, frase }) {
                 }}
               >
                 {confirmar.como === "ligar" ? <Fone /> : <Bolha />}
-                <span>Sim, {confirmar.como === "ligar" ? "ligar" : "mandar"}</span>
+                <span>{tx(confirmar.como === "ligar" ? "adultos.sim.ligar" : "adultos.sim.mensagem")}</span>
               </button>
-              <button className="btn-nao" onClick={fechar}>
-                Não agora
-              </button>
+              <button className="btn-nao" onClick={fechar}>{tx("adultos.nao")}</button>
             </div>
           </div>
         </>

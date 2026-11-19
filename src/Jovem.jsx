@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { dataPorExtenso } from "./idioma.js";
+import { dataPorExtenso, tx } from "./idioma.js";
 import {
   CANAIS, partilhaDe, fitaDe, marcadoQuandoTravou,
   podeOferecerMenos, OPCOES_MENOS, DIAS_FITA,
@@ -25,7 +25,7 @@ function Hoje({ tarefas, feitas, hoje, aoAbrir, aoNova }) {
     <>
       <p className="jv-data">{dataPorExtenso(hoje)}</p>
       {tarefas.length === 0 && (
-        <p className="jv-vazio">Nada marcado para hoje. Se quiser, monte alguma coisa.</p>
+        <p className="jv-vazio">{tx("jovem.vazio")}</p>
       )}
       <div className="jv-lista">
         {tarefas.map((t) => {
@@ -36,15 +36,15 @@ function Hoje({ tarefas, feitas, hoje, aoAbrir, aoNova }) {
               <span className="jv-txt">
                 <b>{t.nome}</b>
                 <span>
-                  {t.horario || "sem horário"}
-                  {t.semLembrete ? " · sem lembrete" : ""}
+                  {t.horario || tx("jovem.semHorario")}
+                  {t.semLembrete ? tx("jovem.semLembrete") : ""}
                 </span>
               </span>
             </button>
           );
         })}
       </div>
-      <button className="jv-nova" onClick={aoNova}>+ Nova</button>
+      <button className="jv-nova" onClick={aoNova}>{tx("jovem.nova")}</button>
     </>
   );
 }
@@ -54,7 +54,7 @@ function Hoje({ tarefas, feitas, hoje, aoAbrir, aoNova }) {
 function Segurou({ tarefas, historico, feitasHoje, notas, hoje, aoMenos }) {
   const [escolhida, setEscolhida] = useState(tarefas[0] ? tarefas[0].id : "");
   const tarefa = tarefas.find((t) => t.id === escolhida) || tarefas[0];
-  if (!tarefa) return <p className="jv-vazio">Ainda não há tarefa para olhar.</p>;
+  if (!tarefa) return <p className="jv-vazio">{tx("jovem.semTarefa")}</p>;
 
   const fita = fitaDe({ tarefa, historico, hojeFeitas: feitasHoje, hoje, dias: DIAS_FITA });
   const marcado = marcadoQuandoTravou({ tarefa, notas, hoje });
@@ -76,27 +76,25 @@ function Segurou({ tarefas, historico, feitasHoje, notas, hoje, aoMenos }) {
           </span>
         ))}
       </div>
-      <p className="jv-legenda">● feito &nbsp; ○ não feito &nbsp; · dia sem cobrança</p>
+      <p className="jv-legenda">{tx("jovem.legenda")}</p>
 
       {marcado.length > 0 && (
         <div className="jv-achado">
-          <b>Quando travou, você marcou:</b>
+          <b>{tx("jovem.marcou")}</b>
           <div>
             {marcado.map((m) => (
               <span className="jv-tag" key={m.rotulo}>“{m.rotulo}” — {m.vezes}</span>
             ))}
           </div>
           {/* Invariante 2: o número é sobre o ambiente, não sobre ele. */}
-          <p className="jv-mudo">
-            O número conta o ambiente, não você. Aqui não tem nota, porcentagem nem sequência.
-          </p>
+          <p className="jv-mudo">{tx("jovem.ambiente")}</p>
         </div>
       )}
 
       {oferecer && (
         <div className="jv-menos">
-          <b>Isto parece resolvido.</b>
-          <p>Faz seis semanas que acontece sozinho. Quer que eu pare de lembrar?</p>
+          <b>{tx("jovem.menos.titulo")}</b>
+          <p>{tx("jovem.menos.texto")}</p>
           <div className="jv-ops">
             {OPCOES_MENOS.map((o) => (
               <button key={o.id} className="jv-op" onClick={() => aoMenos(tarefa, o.id)}>
@@ -104,7 +102,7 @@ function Segurou({ tarefas, historico, feitasHoje, notas, hoje, aoMenos }) {
               </button>
             ))}
           </div>
-          <p className="jv-mudo">Dá para trazer de volta quando quiser, sem recomeçar nada.</p>
+          <p className="jv-mudo">{tx("jovem.menos.volta")}</p>
         </div>
       )}
     </>
@@ -117,10 +115,8 @@ function Ajustes({ d, deQuem, aoVirar, aoNotas, aoDevolver }) {
   const p = partilhaDe(d);
   return (
     <>
-      <h3 className="jv-sub">O que {deQuem || "quem cuida de você"} vê</h3>
-      <p className="jv-mudo">
-        {deQuem || "Essa pessoa"} sabe que estas três coisas existem. O conteúdo, só se você ligar.
-      </p>
+      <h3 className="jv-sub">{tx("jovem.partilha.titulo", { quem: deQuem || tx("jovem.quemCuida") })}</h3>
+      <p className="jv-mudo">{tx("jovem.partilha.texto", { quem: deQuem || tx("jovem.essaPessoa") })}</p>
       {CANAIS.map((c) => {
         const on = Boolean(p[c.id]);
         return (
@@ -130,7 +126,7 @@ function Ajustes({ d, deQuem, aoVirar, aoNotas, aoDevolver }) {
               <span>{c.travado ? c.desligado : on ? c.ligado : c.desligado}</span>
             </div>
             {c.travado ? (
-              <span className="jv-cadeado" aria-label="Não dá para ligar">🔒</span>
+              <span className="jv-cadeado" aria-label={tx("jovem.semLigar")}>🔒</span>
             ) : (
               <button className="jv-toggle" role="switch" aria-checked={on}
                 aria-label={c.nome} onClick={() => aoVirar(c.id)}>
@@ -141,15 +137,12 @@ function Ajustes({ d, deQuem, aoVirar, aoNotas, aoDevolver }) {
         );
       })}
 
-      <h3 className="jv-sub">Suas anotações</h3>
-      <button className="btn-plano neutro" onClick={aoNotas}>Abrir o caderno</button>
+      <h3 className="jv-sub">{tx("jovem.notas.titulo")}</h3>
+      <button className="btn-plano neutro" onClick={aoNotas}>{tx("jovem.notas.botao")}</button>
 
-      <h3 className="jv-sub">Devolver o app</h3>
-      <p className="jv-mudo">
-        Se você não quiser mais cuidar disso, dá para devolver. Suas tarefas e
-        anotações ficam como estão.
-      </p>
-      <button className="btn-plano fantasma" onClick={aoDevolver}>Devolver</button>
+      <h3 className="jv-sub">{tx("jovem.devolver.titulo")}</h3>
+      <p className="jv-mudo">{tx("jovem.devolver.texto")}</p>
+      <button className="btn-plano fantasma" onClick={aoDevolver}>{tx("jovem.devolver.botao")}</button>
     </>
   );
 }
@@ -166,7 +159,7 @@ export default function Jovem({
   return (
     <div className="jv">
       <div className="jv-topo">
-        <b>{aba === "hoje" ? "Hoje" : aba === "segurou" ? "O que segurou" : "Ajustes"}</b>
+        <b>{tx("jovem.aba." + aba)}</b>
       </div>
 
       <div className="jv-corpo">
@@ -184,9 +177,9 @@ export default function Jovem({
       </div>
 
       <div className="jv-barra" role="tablist">
-        {[["hoje", "Hoje"], ["segurou", "O que segurou"], ["ajustes", "Ajustes"]].map(([id, nome]) => (
+        {["hoje", "segurou", "ajustes"].map((id) => (
           <button key={id} className="jv-b" role="tab" aria-selected={aba === id}
-            onClick={() => setAba(id)}>{nome}</button>
+            onClick={() => setAba(id)}>{tx("jovem.aba." + id)}</button>
         ))}
       </div>
     </div>

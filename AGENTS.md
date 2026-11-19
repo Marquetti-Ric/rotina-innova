@@ -232,7 +232,7 @@ O app vai ser multilíngue (espanhol e inglês a caminho). Três regras:
    MDR ou FDA, e a página de privacidade citando a LGPD vira documento
    errado. Meio app em espanhol é pior que app em português.
 
-**O guarda, e por que ele tem linha de base.** São ~590 cadeias ainda cruas,
+**O guarda, e por que ele tem linha de base.** São centenas de cadeias ainda cruas,
 e migrar leva semanas. Um teste que só passa quando tudo estiver migrado é
 inútil nesse meio-tempo: ninguém roda um teste que sempre falha, e aí toda
 tela nova nasce com português embutido. Então `teste:idioma` registra quanto
@@ -244,6 +244,24 @@ npm run teste:idioma              # confere
 node scripts/idioma.mjs --ver     # lista o que falta, por arquivo
 node scripts/idioma.mjs --fixar   # grava a base nova, depois de migrar
 ```
+
+**O que falta migrar, já classificado.** `node scripts/idioma.mjs --ver`
+dá os números do dia; esta lista diz *para onde* cada coisa vai, que é a
+parte que não se descobre olhando:
+
+| vai para | arquivos |
+|---|---|
+| `src/textos/` (interface, três idiomas) | `App.jsx` (a moldura), `Identificacao.jsx`, `Passagem.jsx`, `Ajuste.jsx`, `Notas.jsx`, `Relatorio.jsx`, `licenca.js`, `nivel4.js`, `pausas.jsx`, `contatos.js`, `marca.js`, `notificacoes.js`, e os botões do `Prancha.jsx` |
+| `src/conteudo/` (conteúdo, um arquivo por idioma, escrito por quem cuida do mercado) | as perguntas e propostas de `ajuste.js`, os rótulos de condição e ajuste de `apoio.js`, as etiquetas de `notas.js`, as emoções de `Sentimentos.jsx`, e o vocabulário-núcleo do `Prancha.jsx` |
+
+A segunda coluna é o que **não se traduz**: as etiquetas do caderno são
+justamente o que a regra do vocabulário observável protege, e a varredura
+que impede nome de sintoma de entrar só funciona na língua em que foi
+escrita. Mandar isso para um tradutor devolve a regra quebrada em silêncio.
+
+Já migrados e em zero: `Portao.jsx`, `Jovem.jsx`, `Atrapalhou.jsx`,
+`Adultos.jsx`. As tarefas de fábrica já estão em
+`src/conteudo/tarefas/pt-BR.js` — 174 cadeias que saíram do `App.jsx`.
 
 **Datas e números pelo `Intl`, nunca na mão.** A primeira casa do nível 4
 escrevia "quarta, 18 de novembro" com os meses num array — idioma embutido
@@ -355,6 +373,7 @@ src/Relatorio.jsx     → o resumo para levar na consulta
 src/voz.js            → narração pelo sintetizador, no idioma ativo
 src/idioma.js         → idiomas, tx(), Intl para datas; só pt-BR em COMPLETOS
 src/textos/           → interface por idioma (pt-BR, es, en)
+src/conteudo/         → conteúdo por idioma; hoje as 18 tarefas de fábrica
 src/avatar.jsx        → personagens da criança e carinhas dos adultos
 src/armazenamento.js  → Preferences do Capacitor, com queda para o navegador
 src/notificacoes.js   → avisos locais nos horários das tarefas

@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { falar } from "./voz.js";
 import { atrapalhouDe } from "./ajuste.js";
+import { tx } from "./idioma.js";
 
 /* "O que atrapalhou?" — a criança conta o que ficou no caminho.
  *
@@ -185,12 +186,10 @@ export default function Atrapalhou({ apoio, tarefa, voz, aoResponder, aoPular })
 
   return (
     <div className="atrap">
-      <h2 className="atrap-tit">O que atrapalhou?</h2>
-      <p className="atrap-sub">
-        {tarefa ? tarefa.nome + "." : ""} Pode escolher mais de um.
-      </p>
+      <h2 className="atrap-tit">{tx("atrapalhou.titulo")}</h2>
+      <p className="atrap-sub">{tx("atrapalhou.sub", { tarefa: tarefa ? tarefa.nome + "." : "" })}</p>
 
-      <div className="atrap-grade" role="group" aria-label="O que atrapalhou">
+      <div className="atrap-grade" role="group" aria-label={tx("atrapalhou.grupo")}>
         {opcoes.map((o) => (
           <button key={o.id} className="atrap-op" aria-pressed={marcadas.includes(o.id)}
             onClick={() => virar(o)}>
@@ -204,7 +203,7 @@ export default function Atrapalhou({ apoio, tarefa, voz, aoResponder, aoPular })
           criança escolher entre botões antes de escolher o que sentiu. */}
       <button className="atrap-pronto" data-tem={marcadas.length ? 1 : 0}
         onClick={() => (marcadas.length ? aoResponder(marcadas) : aoPular())}>
-        {marcadas.length ? "Pronto" : "Não quero dizer"}
+        {marcadas.length ? tx("atrapalhou.pronto") : tx("atrapalhou.pular")}
       </button>
     </div>
   );
