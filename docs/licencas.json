@@ -1,5 +1,5 @@
 {
-  "atualizadoEm": "2026-11-16",
+  "atualizadoEm": "2026-11-19",
   "graciaDias": 7,
   "licencas": [
     {
@@ -15,6 +15,15 @@
       "criadaEm": "2026-11-16",
       "validade": "2027-12-31",
       "ativa": true
+    },
+    {
+      "h": "71f4842c4113180911c47e58f4bb345a31329e9801f2349b0b0715953b3fa70d",
+      "apelido": "Ricardo — teste nível 4",
+      "criadaEm": "2026-11-19",
+      "validade": "2027-12-31",
+      "ativa": true,
+      "titular": "clinica",
+      "nivel4": true
     }
   ]
 }
