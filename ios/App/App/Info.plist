@@ -4,8 +4,10 @@
 <dict>
   <key>CAPACITOR_DEBUG</key>
 	<string>$(CAPACITOR_DEBUG)</string>
+	<!-- A língua base do app é o português do Brasil. Com `en` aqui, a App
+	     Store lista o idioma principal errado e o iOS escolhe mal o fallback. -->
 	<key>CFBundleDevelopmentRegion</key>
-	<string>en</string>
+	<string>pt-BR</string>
 	<key>CFBundleDisplayName</key>
         <string>Combinado</string>
 	<key>CFBundleExecutable</key>
@@ -29,6 +31,11 @@
 		<string>whatsapp</string>
 		<string>tel</string>
 	</array>
+	<!-- O app só usa HTTPS, pela pilha do próprio sistema, que é isento.
+	     Declarar aqui evita responder a pergunta de conformidade de
+	     exportação a cada envio no App Store Connect. -->
+	<key>ITSAppUsesNonExemptEncryption</key>
+	<false/>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
 	<key>UIApplicationSceneManifest</key>
@@ -54,9 +61,11 @@
 	<string>LaunchScreen</string>
 	<key>UIMainStoryboardFile</key>
 	<string>Main</string>
+	<!-- armv7 é 32 bits e saiu do iOS há anos; o que a Apple exige hoje é
+	     arm64. Era um resto do template do Capacitor. -->
 	<key>UIRequiredDeviceCapabilities</key>
 	<array>
-		<string>armv7</string>
+		<string>arm64</string>
 	</array>
 	<key>UISupportedInterfaceOrientations</key>
 	<array>

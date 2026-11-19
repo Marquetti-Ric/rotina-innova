@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<!-- Manifesto de privacidade. Obrigatório desde 1º de maio de 2024: sem
+	     ele o App Store Connect recusa o envio com ITMS-91053, e a causa mais
+	     comum de reprovação é exatamente a de baixo — UserDefaults, que todo
+	     app usa e quase ninguém declara. Aqui ele entra pelo Preferences do
+	     Capacitor, que é como src/armazenamento.js guarda a rotina. -->
+
+	<!-- Não há rastreamento. O app faz duas consultas de rede na vida:
+	     validade da licença e verificação de versão. Nenhuma carrega dado da
+	     criança, e não existe analytics, conta de usuário nem identificador
+	     de publicidade. -->
+	<key>NSPrivacyTracking</key>
+	<false/>
+	<key>NSPrivacyTrackingDomains</key>
+	<array/>
+
+	<!-- Nenhum dado é coletado. A lista vazia é a declaração legível por
+	     máquina da mesma coisa que a página de privacidade promete: o que a
+	     família escreve fica no aparelho. -->
+	<key>NSPrivacyCollectedDataTypes</key>
+	<array/>
+
+	<key>NSPrivacyAccessedAPITypes</key>
+	<array>
+		<dict>
+			<key>NSPrivacyAccessedAPIType</key>
+			<string>NSPrivacyAccessedAPICategoryUserDefaults</string>
+			<!-- CA92.1: ler e gravar dado acessível somente ao próprio app.
+			     Não é 1C8F.1, que é para App Group compartilhado — não há
+			     extensão nem app irmão para compartilhar com. -->
+			<key>NSPrivacyAccessedAPITypeReasons</key>
+			<array>
+				<string>CA92.1</string>
+			</array>
+		</dict>
+	</array>
+</dict>
+</plist>

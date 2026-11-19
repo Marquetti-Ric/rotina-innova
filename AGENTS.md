@@ -276,6 +276,35 @@ responsáveis dizer isso.
 O Portão está migrado por inteiro e serve de padrão; `teste:portao` o
 renderiza nos três idiomas e confere que não sobra português na tela.
 
+### iOS — quatro coisas que o projeto já resolveu
+
+O detalhe inteiro está em `ios/LEIA-ME.md`. O que não se descobre lendo o
+código:
+
+- **O esquema compartilhado é obrigatório.** O Xcode guarda o esquema em
+  `xcuserdata`, que está no `.gitignore`. Num clone limpo o
+  `xcodebuild -scheme App` não acha nada e o build morre antes de compilar.
+  Por isso existe `App.xcodeproj/xcshareddata/xcschemes/App.xcscheme`, e ele
+  é arquivo versionado, não gerado.
+- **O manifesto de privacidade tem de estar na fase Resources**, não só na
+  pasta — a Apple lê o que está dentro do `.app`. Ele declara nenhum
+  rastreamento, nenhum dado coletado, e uma única API de motivo obrigatório:
+  `UserDefaults` (`CA92.1`), que o Preferences do Capacitor usa por baixo do
+  `armazenamento.js`. É a recusa de envio mais comum (ITMS-91053). O
+  workflow confere as quatro coisas antes de compilar **e** confere que o
+  manifesto entrou no bundle depois.
+- **O projeto usa SPM, não CocoaPods.** Não existe `pod install` aqui, e as
+  anotações antigas que pediam isso estão erradas.
+- **A versão vem do `docs/latest.json`**, gravada no `pbxproj` na hora de
+  compilar, igual ao que o `release.yml` faz no gradle. Versão escrita à mão
+  em dois lugares diverge.
+
+O modo `simulador` do workflow compila **sem assinatura nenhuma** e não
+precisa de segredo: ele prova que o projeto nativo compila. Build de
+simulador não roda em aparelho — isso é desenho da Apple, não limitação do
+workflow. Os quatro segredos de assinatura o Ricardo cria na conta dele; o
+workflow só consome, monta um chaveiro temporário e o apaga no fim.
+
 ### Mais cinco coisas que não se mexem
 
 - **A prancha fala sempre**, mesmo com a narração automática desligada no perfil
