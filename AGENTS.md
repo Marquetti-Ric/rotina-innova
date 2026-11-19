@@ -208,6 +208,56 @@ pedido na área dos responsáveis. Quem decide continua sendo o adulto — mas
 sem isso ele não tem nem como levantar o assunto, e pedir já é o exercício
 que o nível inteiro existe para sustentar.
 
+### Idioma — interface, conteúdo e o guarda
+
+O app vai ser multilíngue (espanhol e inglês a caminho). Três regras:
+
+1. **Interface e conteúdo são coisas diferentes.** Texto de tela — botões,
+   títulos, erros — é interface e mora em `src/textos/<id>.js`, com chave
+   `tela.coisa`. As 18 tarefas de fábrica com seus **144 passos** e o
+   vocabulário-núcleo da prancha são **conteúdo clínico-pedagógico**: vão
+   para arquivos próprios, que uma terapeuta edita sem tocar em código.
+   Misturar os dois é o que torna tradução cara para sempre.
+2. **A função é `tx()`, nunca `t()`.** Neste código `t` é a convenção para
+   *tarefa* (`lista.find((t) => ...)`) e há oito variáveis locais com esse
+   nome. Importar `t` sombreia em silêncio — aconteceu no Portão, e o erro
+   virou a mensagem errada na tela.
+3. **Traduzir não localiza.** Um idioma só entra em `COMPLETOS` — e só então
+   aparece no seletor — quando tem, além da interface: vocabulário-núcleo
+   próprio (a lista de palavras muda de língua para língua, não é tradução
+   palavra a palavra), regras de silabação da língua, revisão de tom por
+   quem fala o idioma, varredura de vocabulário de sintoma na língua, e a
+   **análise regulatória do país de destino**. A RDC 657 da ANVISA é o que
+   mantém o produto fora do registro de dispositivo médico aqui; lá fora é
+   MDR ou FDA, e a página de privacidade citando a LGPD vira documento
+   errado. Meio app em espanhol é pior que app em português.
+
+**O guarda, e por que ele tem linha de base.** São ~590 cadeias ainda cruas,
+e migrar leva semanas. Um teste que só passa quando tudo estiver migrado é
+inútil nesse meio-tempo: ninguém roda um teste que sempre falha, e aí toda
+tela nova nasce com português embutido. Então `teste:idioma` registra quanto
+texto cru cada arquivo tem em `i18n-base.json` e **falha quando o número
+sobe**. `--fixar` só aceita baixar.
+
+```bash
+npm run teste:idioma              # confere
+node scripts/idioma.mjs --ver     # lista o que falta, por arquivo
+node scripts/idioma.mjs --fixar   # grava a base nova, depois de migrar
+```
+
+**Datas e números pelo `Intl`, nunca na mão.** A primeira casa do nível 4
+escrevia "quarta, 18 de novembro" com os meses num array — idioma embutido
+num lugar onde ninguém procura.
+
+**Sem o pacote de voz, o adulto é avisado.** `voz.js` deixou de ter `pt-BR`
+fixo. Num aparelho sem a voz do idioma a narração simplesmente não sai, e
+para a criança que usa a voz como caminho de leitura isso é regressão de
+acessibilidade — não defeito do app. `faltaVoz()` existe para a área dos
+responsáveis dizer isso.
+
+O Portão está migrado por inteiro e serve de padrão; `teste:portao` o
+renderiza nos três idiomas e confere que não sobra português na tela.
+
 ### Mais cinco coisas que não se mexem
 
 - **A prancha fala sempre**, mesmo com a narração automática desligada no perfil
@@ -252,14 +302,14 @@ que o nível inteiro existe para sustentar.
   rede: validade da licença e verificação de versão.
 
 ### Textos
-Português do Brasil. Nada de infantilizar o nível 3 — criança de 11 anos
+Português do Brasil é a base, e toda chave nasce nele. Nada de infantilizar o nível 3 — criança de 11 anos
 percebe e abandona.
 
 ## Como validar antes de dizer que terminou
 
 ```bash
 npm run build     # tem de passar sem avisos
-npm run teste     # 437 verificações, em onze suítes
+npm run teste     # 445 verificações, em doze suítes
 ```
 
 As suítes, se precisar rodar uma só: `teste:fluxo` (ativação → níveis → rotina →
@@ -268,8 +318,8 @@ atualização), `teste:portao` (a tela de código: colar, erros e contraste),
 `teste:identificacao` (da tela ao app aplicando o perfil), `teste:modulos`
 (prancha e sentimentos), `teste:notas` (o caderno e o resumo),
 `teste:pausas` (as quatro cenas do corpo), `teste:ajuste` (o assistente e o
-check-in da criança), `teste:nivel4` (propriedade, partilha e padrão) e
-`teste:contraste` (a paleta).
+check-in da criança), `teste:nivel4` (propriedade, partilha e padrão),
+`teste:idioma` (o guarda do texto cru) e `teste:contraste` (a paleta).
 
 As dez primeiras são testes de renderização de verdade, com jsdom: o projeto
 já teve um erro de inicialização que passou pela checagem de sintaxe e só
@@ -302,7 +352,9 @@ src/Jovem.jsx         → a casa do nível 4: hoje, o que segurou, ajustes
 src/notas.js          → caderno de observação e montagem do resumo
 src/Notas.jsx         → "O que eu noto"
 src/Relatorio.jsx     → o resumo para levar na consulta
-src/voz.js            → narração pelo sintetizador do aparelho
+src/voz.js            → narração pelo sintetizador, no idioma ativo
+src/idioma.js         → idiomas, tx(), Intl para datas; só pt-BR em COMPLETOS
+src/textos/           → interface por idioma (pt-BR, es, en)
 src/avatar.jsx        → personagens da criança e carinhas dos adultos
 src/armazenamento.js  → Preferences do Capacitor, com queda para o navegador
 src/notificacoes.js   → avisos locais nos horários das tarefas
@@ -316,4 +368,5 @@ scripts/marca.mjs     → geometria do símbolo; gera os SVG e os PNG nativos
 scripts/contraste.mjs → trava a paleta (roda com os testes, sem navegador)
 scripts/auditar-contraste.mjs → mede o app num Chrome de verdade
 scripts/fontes-site.mjs → leva as fontes do app para o docs/
+scripts/idioma.mjs    → o guarda do i18n, com linha de base que só encolhe
 ```

@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { dataPorExtenso } from "./idioma.js";
 import {
   CANAIS, partilhaDe, fitaDe, marcadoQuandoTravou,
   podeOferecerMenos, OPCOES_MENOS, DIAS_FITA,
@@ -15,21 +16,14 @@ import {
  * está segurando o aparelho.
  */
 
-const DIA_SEMANA = ["domingo", "segunda", "terça", "quarta", "quinta", "sexta", "sábado"];
-const MES = ["janeiro", "fevereiro", "março", "abril", "maio", "junho", "julho",
-  "agosto", "setembro", "outubro", "novembro", "dezembro"];
 
-function porExtenso(iso) {
-  const d = new Date(iso + "T12:00:00");
-  return `${DIA_SEMANA[d.getDay()]}, ${d.getDate()} de ${MES[d.getMonth()]}`;
-}
 
 /* ------------------------------------------------------------------ hoje */
 
 function Hoje({ tarefas, feitas, hoje, aoAbrir, aoNova }) {
   return (
     <>
-      <p className="jv-data">{porExtenso(hoje)}</p>
+      <p className="jv-data">{dataPorExtenso(hoje)}</p>
       {tarefas.length === 0 && (
         <p className="jv-vazio">Nada marcado para hoje. Se quiser, monte alguma coisa.</p>
       )}

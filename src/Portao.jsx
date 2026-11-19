@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import App from './App.jsx';
 import { conferir, ativar, extrair } from './licenca';
 import { avisoDeLicencaPara } from './nivel4.js';
+import { tx } from './idioma.js';
 import { checar, adiar, baixar } from './atualizacao';
 import { marca } from './marca';
 
@@ -113,8 +114,8 @@ export default function Portao() {
   async function enviar() {
     if (extrair(codigo).length < 12) {
       setErro(codigo.trim()
-        ? 'Esse código está incompleto. Confira se copiou os quatro grupos.'
-        : 'Digite o código que a clínica entregou. O campo ainda está vazio.');
+        ? tx('portao.erro.incompleto')
+        : tx('portao.erro.vazio'));
       return;
     }
     setEnviando(true);
@@ -130,15 +131,15 @@ export default function Portao() {
   async function colar() {
     setErro('');
     try {
-      const t = await navigator.clipboard.readText();
-      if (!t || !t.trim()) {
-        setErro('Não há nada copiado. Copie o código na mensagem da clínica e volte aqui.');
+      const copiado = await navigator.clipboard.readText();
+      if (!copiado || !copiado.trim()) {
+        setErro(tx('portao.erro.semCopia'));
         return;
       }
-      setCodigo(extrair(t));
+      setCodigo(extrair(copiado));
     } catch {
-      setErro('Seu aparelho não deixou eu ler o que está copiado. '
-        + 'Toque e segure no campo acima para colar.');
+      setErro(tx('portao.erro.semLeitura')
+        + tx('portao.erro.colarManual'));
     }
   }
 
@@ -149,15 +150,12 @@ export default function Portao() {
   if (estado === 'ativar') {
     return (
       <Moldura>
-        <h1 className="pt-titulo">Código de acesso</h1>
-        <p className="pt-texto">
-          Digite o código que a clínica entregou ao responsável.
-          Isso é pedido uma única vez.
-        </p>
+        <h1 className="pt-titulo">{tx('portao.titulo')}</h1>
+        <p className="pt-texto">{tx('portao.texto')}</p>
         <input
           className="pt-campo"
           id="pt-codigo"
-          aria-label="Código de acesso, quatro grupos de letras e números"
+          aria-label={tx('portao.campo.rotulo')}
           aria-describedby="pt-dica"
           value={codigo}
           onChange={(e) => setCodigo(e.target.value.toUpperCase())}
@@ -175,19 +173,14 @@ export default function Portao() {
           maxLength={160}
         />
         {!codigo && (
-          <button className="pt-colar" onClick={colar}>Colar o código copiado</button>
+          <button className="pt-colar" onClick={colar}>{tx('portao.colar')}</button>
         )}
         <button className="pt-botao" onClick={enviar} disabled={enviando}>
-          {enviando ? 'Conferindo...' : 'Liberar o app'}
+          {enviando ? tx('portao.botao.enviando') : tx('portao.botao')}
         </button>
         <p className="pt-erro" role="status" aria-live="polite">{erro}</p>
-        <p className="pt-ajuda" id="pt-dica">
-          Ainda não tem um código? Peça na recepção da clínica.
-        </p>
-        <p className="pt-ajuda" style={{ marginTop: 18 }}>
-          O Combinado organiza a rotina do dia em passos ilustrados, no ritmo
-          de cada criança.
-        </p>
+        <p className="pt-ajuda" id="pt-dica">{tx('portao.dica')}</p>
+        <p className="pt-ajuda" style={{ marginTop: 18 }}>{tx('portao.sobre')}</p>
       </Moldura>
     );
   }
@@ -195,13 +188,10 @@ export default function Portao() {
   if (estado === 'bloqueada') {
     return (
       <Moldura>
-        <h1 className="pt-titulo">Acesso encerrado</h1>
-        <p className="pt-texto">
-          O código deste aparelho não está mais válido. Os dados da rotina continuam
-          guardados aqui e voltam assim que um novo código for inserido.
-        </p>
+        <h1 className="pt-titulo">{tx('portao.bloqueada.titulo')}</h1>
+        <p className="pt-texto">{tx('portao.bloqueada.texto')}</p>
         <button className="pt-botao" style={{ marginTop: 24 }} onClick={() => setEstado('ativar')}>
-          Inserir outro código
+          {tx('portao.bloqueada.botao')}
         </button>
       </Moldura>
     );
@@ -215,14 +205,13 @@ export default function Portao() {
         <div className="pt-faixa">
           <style>{CSS}</style>
           <span className="pt-faixa-txt">
-            Acesso vence em {carencia.diasRestantes} {carencia.diasRestantes === 1 ? 'dia' : 'dias'}
+            {t(carencia.diasRestantes === 1 ? 'portao.carencia.dia' : 'portao.carencia.dias', { n: carencia.diasRestantes })}
             {/* Quem renova é o titular da licença. Numa licença de clínica a
                 família não consegue renovar, então mandá-la "renovar" é
                 mandar fazer o que ela não pode. */}
             <small>
-              {avisoDeLicencaPara(licenca) === 'clinica'
-                ? 'Fale com a clínica para renovar.'
-                : 'Renove na loja para continuar usando.'}
+              {t(avisoDeLicencaPara(licenca) === 'clinica'
+                ? 'portao.carencia.clinica' : 'portao.carencia.pessoa')}
             </small>
           </span>
           <button className="ignorar" onClick={() => setCarencia(null)}>Ok</button>

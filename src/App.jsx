@@ -30,6 +30,8 @@ import {
   pedir, limparPedido, virarPartilha, adultoVe, aplicarMenos,
 } from "./nivel4.js";
 import Jovem from "./Jovem.jsx";
+import { oferecidos, definirIdioma, doAparelho, idiomaAtual, infoDe, tx } from "./idioma.js";
+import { faltaVoz, esquecerVozes } from "./voz.js";
 import { PassagemAdulto, PassagemJovem, AvisoRetomada } from "./Passagem.jsx";
 
 /* ============================================================
@@ -1911,6 +1913,9 @@ export default function App({ licenca = null }) {
           const historico = virou && (s.hoje || []).length
             ? [...(s.historico || []), { dia: s.dia, feitas: s.hoje }].slice(-90)
             : s.historico || [];
+          /* O idioma guardado manda; sem escolha feita, o do aparelho é só
+             sugestão inicial. */
+          definirIdioma(s.idioma || doAparelho());
           setD({
             ...PADRAO, ...s, historico,
             hoje: s.dia === hojeStr ? s.hoje || [] : [], dia: hojeStr,
@@ -2843,6 +2848,34 @@ export default function App({ licenca = null }) {
                 </button>
               )}
             </div>
+            {/* O seletor só existe com mais de um idioma pronto. Meio app em
+                espanhol é pior que app em português, então um idioma só
+                aparece quando tem conteúdo, revisão de tom e parecer do país
+                — por isso `oferecidos()` e não a lista inteira. */}
+            {oferecidos().length > 1 && (
+              <div style={{ marginTop: 18 }}>
+                <div className="linha-nome" style={{ marginBottom: 6 }}>{tx('idioma.titulo')}</div>
+                <p className="aviso" style={{ marginTop: 0 }}>{tx('idioma.texto')}</p>
+                <div className="niveis">
+                  {oferecidos().map((i) => (
+                    <button key={i.id} className="nivel" data-on={idiomaAtual() === i.id ? 1 : 0}
+                      onClick={() => { definirIdioma(i.id); esquecerVozes(); salvar({ ...d, idioma: i.id }); }}>
+                      <span><span className="nivel-nome">{i.nome}</span></span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Sem o pacote de voz a narração some em silêncio, e para quem
+                usa a voz como caminho de leitura isso é regressão de
+                acessibilidade — não defeito do app, e o adulto precisa saber. */}
+            {faltaVoz() === true && (
+              <p className="aviso" style={{ marginTop: 14 }}>
+                {tx('idioma.semVoz', { idioma: infoDe(idiomaAtual()).nome })}
+              </p>
+            )}
+
             {temNivel4 && d.pedido && (
               <div className="pedido">
                 <div>

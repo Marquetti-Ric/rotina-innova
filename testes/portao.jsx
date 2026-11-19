@@ -41,6 +41,7 @@ const { createRoot } = await import('react-dom/client');
 const { act } = await import('react');
 const { extrair } = await import('../src/licenca.js');
 const Portao = (await import('../src/Portao.jsx')).default;
+const { tx, definirIdioma } = await import('../src/idioma.js');
 
 const txt = () => document.body.textContent.replace(/\s+/g, ' ');
 const pausa = async (ms = 80) => { await act(async () => { await new Promise((r) => setTimeout(r, ms)); }); };
@@ -89,7 +90,7 @@ await act(async () => { root.render(React.createElement(Portao)); });
 await pausa(300);
 
 const campo = () => document.querySelector('.pt-campo');
-ok('2.1 abre pedindo o código             ', txt().includes('Código de acesso'));
+ok('2.1 abre pedindo o código             ', txt().includes(tx('portao.titulo')));
 const mascara = campo().getAttribute('placeholder');
 ok('2.2 a máscara não usa 0, 1, O, I, L, S',
   !/[01OILS]/.test(mascara.replace(/^CMB/, '')), mascara);
@@ -129,7 +130,7 @@ ok('4.1 com campo vazio, oferece colar    ', !!porTexto('.pt-colar', 'Colar'));
 naAreaDeTransferencia = '';
 await clicar(porTexto('.pt-colar', 'Colar'));
 await pausa(80);
-ok('4.2 nada copiado: avisa               ', txt().includes('Não há nada copiado'));
+ok('4.2 nada copiado: avisa               ', txt().includes(tx('portao.erro.semCopia')));
 
 naAreaDeTransferencia = `Boa tarde! O código do Léo é ${CODIGO}. Abraço, recepção.`;
 await clicar(porTexto('.pt-colar', 'Colar'));
@@ -225,6 +226,52 @@ ok('6.7 a máscara é bem mais clara        ', (() => {
   const c = b && b[0].match(/color:\s*(#[0-9A-Fa-f]{6})/);
   return c && razao(c[1], '#FFFFFF') < 3;
 })(), 'a máscara não pode competir com o texto digitado');
+
+/* ============================================================
+   7. o Portão nos três idiomas
+   ============================================================ */
+console.log('\n— idiomas —');
+
+const { IDIOMAS, COMPLETOS, faltando, doAparelho } = await import('../src/idioma.js');
+
+/* Nenhum idioma entra com chave faltando: chave sem tradução cai no
+   português, e meio app em espanhol é pior que app em português. */
+for (const i of IDIOMAS) {
+  const f = faltando(i.id);
+  ok(`7.${IDIOMAS.indexOf(i) + 1} ${i.id} tem todas as chaves`.padEnd(39), f.length === 0, f.join(', '));
+}
+
+/* Traduzir não localiza: espanhol e inglês só entram em COMPLETOS com
+   vocabulário-núcleo próprio, revisão de tom e parecer do país de destino. */
+ok('7.4 só o português está completo     ',
+  COMPLETOS.length === 1 && COMPLETOS[0] === 'pt-BR', COMPLETOS.join(','));
+ok('7.5 e o aparelho não escolhe incompleto',
+  doAparelho({ languages: ['es-MX', 'es'] }) === 'pt-BR');
+
+/* Raiz nova a cada idioma: re-renderizar o mesmo componente mantém o
+   estado interno, e a segunda volta começaria na tela errada. */
+const verNoIdioma = async (id) => {
+  definirIdioma(id);
+  const alvo = document.createElement('div');
+  document.body.appendChild(alvo);
+  const r = createRoot(alvo);
+  await act(async () => { r.render(React.createElement(Portao)); });
+  await pausa(200);
+  const visto = alvo.textContent.replace(/\s+/g, ' ');
+  await act(async () => { r.unmount(); });
+  alvo.remove();
+  definirIdioma('pt-BR');
+  return visto;
+};
+
+const emEs = await verNoIdioma('es');
+ok('7.6 o Portão fala espanhol           ', emEs.includes('Activar la app'), emEs.slice(0, 70));
+const emEn = await verNoIdioma('en');
+ok('7.7 e inglês                         ', emEn.includes('Unlock the app'), emEn.slice(0, 70));
+/* O que prova que a migração do Portão ficou completa: nenhuma palavra em
+   português sobrou na tela quando o idioma é outro. */
+ok('7.8 sem português sobrando na tela   ',
+  !/Liberar o app|Código de acesso|Conferindo/.test(emEn), emEn.slice(0, 90));
 
 console.log(falhas === 0 ? '\nTodos passaram.\n' : `\n${falhas} falha(s).\n`);
 process.exit(falhas === 0 ? 0 : 1);
