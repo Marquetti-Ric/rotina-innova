@@ -165,6 +165,10 @@ async function ativarPelaLista(codigo) {
        binária: ou o paciente é dono do app, ou não é. Não existe ligar o
        nível 4 e continuar vendo tudo. */
     nivel4: achada.nivel4 === true,
+    /* Prévia de idioma. Libera os idiomas que ainda não estão em COMPLETOS,
+       rotulados como incompletos, para que se possa testá-los num aparelho
+       de verdade. Não é para clínica: é para quem está construindo. */
+    previa: achada.previa === true,
   };
   await gravar(dados);
   return { ok: true, licenca: dados };
@@ -244,6 +248,7 @@ async function conferirLista(lic) {
       if (achada) {
         lic.titular = achada.titular === 'clinica' ? 'clinica' : 'pessoa';
         lic.nivel4 = achada.nivel4 === true;
+        lic.previa = achada.previa === true;
       }
       if (achada && achada.validade !== undefined) lic.validade = achada.validade;
       lic.ultimaConferencia = hoje();

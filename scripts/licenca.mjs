@@ -10,6 +10,7 @@
  *   node scripts/licenca.mjs --acao liberar --apelido "Clínica A" --validade 2027-12-31
  *   node scripts/licenca.mjs --acao liberar --apelido "Clínica A" --titular clinica --nivel4 sim
  *   node scripts/licenca.mjs --acao nivel4 --codigo CMB-XXXX-XXXX-XXXX --valor sim
+ *   node scripts/licenca.mjs --acao previa --codigo CMB-XXXX-XXXX-XXXX --valor sim
  *   node scripts/licenca.mjs --acao renovar --codigo CMB-XXXX-XXXX-XXXX --validade 2028-06-30
  *   node scripts/licenca.mjs --acao revogar --codigo CMB-XXXX-XXXX-XXXX
  *   node scripts/licenca.mjs --acao listar
@@ -81,6 +82,9 @@ if (acao === 'liberar') {
     ativa: true,
     titular,
     nivel4: a.nivel4 === 'sim',
+    /* Prévia de idioma: libera espanhol e inglês, rotulados como
+       incompletos, para testar num aparelho. Não é para clínica. */
+    previa: a.previa === 'sim',
   });
   salvar(base);
   console.log(`## Licença criada\n`);
@@ -92,6 +96,7 @@ if (acao === 'liberar') {
   console.log(`- Validade: ${validade || 'sem prazo'}`);
   console.log(`- Titular: ${titular === 'clinica' ? 'clínica' : 'pessoa física'}`);
   console.log(`- Nível 4 (o jovem é dono do app): ${a.nivel4 === 'sim' ? 'liberado' : 'não'}`);
+  console.log(`- Prévia de idioma (espanhol e inglês): ${a.previa === 'sim' ? 'liberada' : 'não'}`);
   console.log(`\n> Anote este código agora. Só o hash fica guardado — não há como recuperá-lo depois.`);
 
 } else if (acao === 'renovar') {
@@ -117,6 +122,19 @@ if (acao === 'liberar') {
   lic.nivel4 = a.valor === 'sim';
   salvar(base);
   console.log(`## Nível 4 ${lic.nivel4 ? 'liberado' : 'bloqueado'}\n`);
+  console.log(`- Apelido: ${lic.apelido}`);
+  console.log(`\n> Chega no aparelho na próxima conferência de licença.`);
+
+} else if (acao === 'previa') {
+  /* Liga ou desliga a prévia de idioma numa licença que já existe. Mesmo
+     caminho do nível 4: chega no aparelho na conferência diária. */
+  if (!a.codigo) throw new Error('Informe --codigo.');
+  const h = hash(a.codigo);
+  const lic = base.licencas.find((l) => l.h === h);
+  if (!lic) throw new Error('Código não encontrado.');
+  lic.previa = a.valor === 'sim';
+  salvar(base);
+  console.log(`## Prévia de idioma ${lic.previa ? 'liberada' : 'desligada'}\n`);
   console.log(`- Apelido: ${lic.apelido}`);
   console.log(`\n> Chega no aparelho na próxima conferência de licença.`);
 

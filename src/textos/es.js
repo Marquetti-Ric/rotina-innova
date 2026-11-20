@@ -39,6 +39,8 @@ export default {
 
   'idioma.titulo': 'Idioma',
   'idioma.texto': 'Cambia el idioma de toda la app, incluida la voz.',
+  'idioma.previa': 'vista previa — solo interfaz',
+  'idioma.previa.aviso': 'Los idiomas marcados como vista previa tienen la interfaz traducida, pero las tareas, las etiquetas y el tablero siguen en portugués, y falta la revisión de quien habla el idioma. Sirven para probar, no para entregar a una familia.',
   'idioma.semVoz': 'Este dispositivo no tiene instalada la voz en {idioma}. La app sigue funcionando, pero la narración en voz alta queda muda hasta que alguien instale el paquete de voz en los ajustes del dispositivo.',
 
   /* ------------------------------------------- telas da criança */
@@ -81,5 +83,16 @@ export default {
   'jovem.notas.botao': 'Abrir el cuaderno',
   'jovem.devolver.titulo': 'Devolver la app',
   'jovem.devolver.texto': 'Si ya no quieres encargarte de esto, puedes devolverla. Tus tareas y anotaciones quedan igual.',
+  'licenca.titulo': 'Licencia',
+  'licenca.semValidade': 'sin fecha de vencimiento',
+  'licenca.vence': 'vence el {dia}',
+  'licenca.titular.clinica': 'a nombre de la clínica',
+  'licenca.titular.pessoa': 'a su nombre',
+  'licenca.nivel4.sim': 'nivel 4 habilitado',
+  'licenca.nivel4.nao': 'nivel 4 no habilitado en esta licencia',
+  'licenca.trocar': 'Cambiar el código de acceso',
+  'licenca.trocar.confirmar': 'Toque otra vez para pedir el código',
+  'licenca.trocar.texto': 'Si la clínica envió un código nuevo — por renovación, o para habilitar el nivel 4 — se ingresa aquí. La rutina, las anotaciones y el perfil quedan como están: solo cambia el código.',
+
   'jovem.devolver.botao': 'Devolver',
 };

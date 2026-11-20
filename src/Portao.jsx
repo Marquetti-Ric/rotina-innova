@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import App from './App.jsx';
-import { conferir, ativar, extrair } from './licenca';
+import { conferir, ativar, extrair, limparLicenca } from './licenca';
 import { avisoDeLicencaPara } from './nivel4.js';
-import { tx } from './idioma.js';
+import { tx, definirPrevia } from './idioma.js';
 import { checar, adiar, baixar } from './atualizacao';
 import { marca } from './marca';
 
@@ -87,7 +87,7 @@ export default function Portao() {
   useEffect(() => {
     (async () => {
       const r = await conferir();
-      if (r.licenca) setLicenca(r.licenca);
+      if (r.licenca) { setLicenca(r.licenca); definirPrevia(r.licenca.previa); }
       if (r.estado === 'sem-licenca') setEstado('ativar');
       else if (r.estado === 'bloqueada') setEstado('bloqueada');
       else {
@@ -122,8 +122,28 @@ export default function Portao() {
     setErro('');
     const r = await ativar(codigo);
     setEnviando(false);
-    if (r.ok) setEstado('liberado');
-    else setErro(r.motivo);
+    if (r.ok) {
+      /* A licença nova tem de chegar ao App: é ela que diz se o nível 4
+         existe nesta instalação. Sem esta linha, trocar o código liberava a
+         entrada e o app seguia com a licença antiga em memória. */
+      if (r.licenca) { setLicenca(r.licenca); definirPrevia(r.licenca.previa); }
+      setEstado('liberado');
+    } else setErro(r.motivo);
+  }
+
+  /* Trocar o código num aparelho já ativado. Apaga só a licença — a rotina,
+     as anotações e o perfil moram em outras chaves e ficam onde estão.
+     É o caminho da clínica que renova, ou que libera o nível 4 depois: sem
+     ele o código novo não tem por onde entrar, e a única saída seria
+     desinstalar, que apaga a rotina da criança. */
+  async function trocarCodigo() {
+    await limparLicenca();
+    setLicenca(null);
+    definirPrevia(false);
+    setCarencia(null);
+    setCodigo('');
+    setErro('');
+    setEstado('ativar');
   }
 
   /* A clínica manda o código por WhatsApp: colar é o caminho principal, e
@@ -199,18 +219,18 @@ export default function Portao() {
 
   return (
     <>
-      <App licenca={licenca} />
+      <App licenca={licenca} aoTrocarCodigo={trocarCodigo} />
 
       {carencia && (
         <div className="pt-faixa">
           <style>{CSS}</style>
           <span className="pt-faixa-txt">
-            {t(carencia.diasRestantes === 1 ? 'portao.carencia.dia' : 'portao.carencia.dias', { n: carencia.diasRestantes })}
+            {tx(carencia.diasRestantes === 1 ? 'portao.carencia.dia' : 'portao.carencia.dias', { n: carencia.diasRestantes })}
             {/* Quem renova é o titular da licença. Numa licença de clínica a
                 família não consegue renovar, então mandá-la "renovar" é
                 mandar fazer o que ela não pode. */}
             <small>
-              {t(avisoDeLicencaPara(licenca) === 'clinica'
+              {tx(avisoDeLicencaPara(licenca) === 'clinica'
                 ? 'portao.carencia.clinica' : 'portao.carencia.pessoa')}
             </small>
           </span>

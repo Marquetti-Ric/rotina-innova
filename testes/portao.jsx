@@ -273,5 +273,82 @@ ok('7.7 e inglês                         ', emEn.includes('Unlock the app'), em
 ok('7.8 sem português sobrando na tela   ',
   !/Liberar o app|Código de acesso|Conferindo/.test(emEn), emEn.slice(0, 90));
 
+/* ---------------------------------------------------------------- 8. carência
+ *
+ * A faixa de carência tinha duas chamadas a `t()` em vez de `tx()`. O único
+ * `t` em volta era o handle de um setTimeout, então a faixa quebrava a tela —
+ * e nada disso aparecia, porque a faixa só existe com licença vencida. Build,
+ * lint e 445 testes passavam. Agora renderiza-se a faixa de verdade.
+ *
+ * Há também um guarda estático em `scripts/idioma.mjs`, que proíbe `t(` cru
+ * em arquivo que importa `tx`. Os dois servem: o guarda pega a classe inteira
+ * sem renderizar, este teste prova que a tela monta. */
+const { storage } = await import('../src/armazenamento.js');
+const hojeIso = new Date().toISOString().slice(0, 10);
+
+const verCarencia = async () => {
+  /* A lista também tem de dizer que venceu: a conferência diária sobrescreve
+     a validade guardada com a que vem da lista. */
+  licencas.licencas[0].validade = '2020-01-01';
+  licencas.licencas[0].titular = 'clinica';
+  await storage.set('licenca_v2', JSON.stringify({
+    modo: 'lista', h: H, apelido: 'Teste', validade: '2020-01-01',
+    gracia: 7, ultimaConferencia: '2020-01-01', primeiroAviso: hojeIso,
+    titular: 'clinica', nivel4: true, previa: false,
+  }));
+  const alvo = document.createElement('div');
+  document.body.appendChild(alvo);
+  const r = createRoot(alvo);
+  await act(async () => { r.render(React.createElement(Portao)); });
+  await pausa(250);
+  const visto = alvo.textContent.replace(/\s+/g, ' ');
+  await act(async () => { r.unmount(); });
+  alvo.remove();
+  licencas.licencas[0].validade = '2027-12-31';
+  delete licencas.licencas[0].titular;
+  await storage.set('licenca_v2', '');
+  return visto;
+};
+
+const naCarencia = await verCarencia();
+ok('8.1 a faixa de carência monta        ',
+  naCarencia.includes('Acesso vence em'), naCarencia.slice(0, 90));
+ok('8.2 com o número de dias            ',
+  /Acesso vence em 7 dias/.test(naCarencia), naCarencia.slice(0, 90));
+/* Quem renova licença de clínica é a clínica. Mandar a família renovar na
+   loja é mandar fazer o que ela não pode. */
+ok('8.3 e manda a clínica renovar, não a família',
+  naCarencia.includes('Fale com a clínica') && !naCarencia.includes('Renove na loja'),
+  naCarencia.slice(0, 120));
+/* A rotina da criança segue funcionando: a carência é faixa, não bloqueio. */
+ok('8.4 o app continua aberto por baixo ',
+  naCarencia.length > 200, `${naCarencia.length} caracteres`);
+
+/* ----------------------------------------------------- 9. prévia de idioma
+ *
+ * O seletor esconde espanhol e inglês porque só pt-BR está em COMPLETOS, e
+ * isso é a regra. Mas sem caminho nenhum não havia como testar os dois num
+ * aparelho, e revisão de tom empurrada para o fim sai caro. Quem destrava é
+ * a licença, igual ao nível 4. */
+const { definirPrevia, temPrevia, oferecidos } = await import('../src/idioma.js');
+
+definirPrevia(false);
+ok('9.1 sem prévia, só o português      ', oferecidos().length === 1);
+definirPrevia(true);
+ok('9.2 com prévia, os três aparecem    ', oferecidos().length === 3,
+  oferecidos().map((i) => i.id).join(','));
+/* Um idioma incompleto só entra na prévia se a interface estiver inteira:
+   prévia é para testar tom e layout, não para caçar chave faltando. */
+ok('9.3 e só os que têm a interface inteira',
+  oferecidos().every((i) => faltando(i.id).length === 0));
+/* Deliberado: a prévia é escolha de tela, nunca padrão herdado. Um aparelho
+   em espanhol não abre o app em espanhol por ter prévia ligada. */
+ok('9.4 o aparelho ainda não herda prévia',
+  doAparelho({ languages: ['es-MX', 'es'] }) === 'pt-BR');
+ok('9.5 e COMPLETOS não muda            ',
+  COMPLETOS.length === 1 && COMPLETOS[0] === 'pt-BR');
+definirPrevia(false);
+ok('9.6 desligar volta ao português só  ', oferecidos().length === 1 && !temPrevia());
+
 console.log(falhas === 0 ? '\nTodos passaram.\n' : `\n${falhas} falha(s).\n`);
 process.exit(falhas === 0 ? 0 : 1);

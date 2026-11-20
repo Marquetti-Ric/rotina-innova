@@ -105,6 +105,42 @@ const lerBase = () => {
   try { return JSON.parse(readFileSync(BASE, 'utf8')); } catch { return {}; }
 };
 
+/* ---------------------------------------------------------- t() sombreado
+ *
+ * A função de tradução é `tx()`, e a razão está no AGENTS.md: neste código
+ * `t` é a convenção para *tarefa*. Mas a regra escrita não impede o dedo de
+ * escrever `t(`, e foi o que aconteceu — duas chamadas na faixa de carência
+ * do Portão, onde o único `t` em volta era o handle de um setTimeout. O
+ * build passou, o lint passou e os 445 testes passaram, porque a faixa só
+ * aparece com licença vencida. Quem não roda com licença em carência nunca
+ * vê.
+ *
+ * A regra, então: num arquivo que importa `tx`, nenhuma chamada `t(` crua.
+ * Tarefa é objeto — se escreve `t.nome`, nunca `t(...)` — e por isso não há
+ * uso legítimo. Se algum dia houver, renomeia-se a função local, que é
+ * justamente o que a convenção pede. */
+function tSombreado() {
+  const erros = [];
+  for (const p of arquivos()) {
+    const fonte = readFileSync(p, 'utf8');
+    if (!/\btx\b[^\n]*from\s+['"][^'"]*idioma/.test(fonte)) continue;
+    /* `limpar` colapsa linhas ao tirar comentário de bloco, e aqui o número
+       da linha é o que faz o erro ser achável. Então apaga-se o comentário
+       deixando as quebras de linha no lugar. */
+    const semComentario = fonte
+      .replace(/const CSS = `[\s\S]*?`;/g, (b) => b.replace(/[^\n]/g, ' '))
+      .replace(/\/\*[\s\S]*?\*\//g, (b) => b.replace(/[^\n]/g, ' '))
+      .replace(/(^|[^:])\/\/.*$/gm, '$1');
+    const linhas = semComentario.split('\n');
+    linhas.forEach((linha, i) => {
+      if (/(^|[^\w.$'"`])t\s*\(/.test(linha)) {
+        erros.push({ arquivo: relative(RAIZ, p), linha: i + 1, texto: linha.trim() });
+      }
+    });
+  }
+  return erros;
+}
+
 /* ------------------------------------------------------------------ cli */
 
 const arg = process.argv.slice(2);
@@ -140,6 +176,17 @@ if (arg.includes('--fixar')) {
 }
 
 let falhas = 0;
+
+const sombras = tSombreado();
+if (sombras.length) {
+  console.log('\nChamadas a t() onde deveria ser tx():');
+  for (const s of sombras) {
+    console.log(`  ${s.arquivo}:${s.linha}  ${s.texto.slice(0, 70)}`);
+  }
+  console.log('  → a função de tradução é tx(). Aqui t é tarefa.');
+  falhas += sombras.length;
+}
+
 for (const [nome, n] of Object.entries(conta)) {
   const limite = base[nome];
   if (limite === undefined) {

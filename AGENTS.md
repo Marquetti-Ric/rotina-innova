@@ -200,6 +200,21 @@ física que baixa da loja):
   pressupõe alguém que entrega.
 - **Aviso de vencimento vai para o titular.** A família não renova licença de
   clínica; mandá-la renovar é mandar fazer o que ela não pode.
+- **Código novo precisa de porta de entrada.** O app ficou meses sem como
+  receber um segundo código: `limparLicenca` existia e nunca era chamada.
+  Consequência real, descoberta testando o nível 4 — a clínica que libera o
+  nível 4 ou renova depois da ativação não tinha caminho, e a única saída era
+  desinstalar, **que apaga a rotina da criança**. Hoje a área dos
+  responsáveis mostra a licença (apelido, validade, titular, nível 4) e tem
+  "Trocar o código de acesso", em dois toques. Trocar não toca em nada
+  guardado: licença, rotina, perfil e anotações são chaves separadas. E
+  `ativar` devolve a licença nova ao `Portao`, que a repassa ao `App` — sem
+  isso o código entrava e o app seguia com a licença antiga em memória.
+- **O modo `servidor` ainda não carrega `titular`, `nivel4` nem `previa`.**
+  Hoje não importa, porque o `src/servidor.js` está vazio e o app roda no
+  modo `lista`. Mas quando o Supabase entrar no ar, esses três têm de vir
+  **dentro do token assinado** — não numa resposta solta ao lado, senão o
+  nível 4 passa a ser habilitável por quem interceptar a resposta.
 - **A marca da clínica não entra na tela diária dele.** Fica na ativação, na
   área do adulto e no resumo da consulta.
 
@@ -221,7 +236,17 @@ O app vai ser multilíngue (espanhol e inglês a caminho). Três regras:
 2. **A função é `tx()`, nunca `t()`.** Neste código `t` é a convenção para
    *tarefa* (`lista.find((t) => ...)`) e há oito variáveis locais com esse
    nome. Importar `t` sombreia em silêncio — aconteceu no Portão, e o erro
-   virou a mensagem errada na tela.
+   virou a mensagem errada na tela. **Aconteceu de novo**, e pior: duas
+   chamadas a `t()` na faixa de carência, onde o único `t` em volta era o
+   handle de um `setTimeout` dentro de um `useEffect` — ou seja, fora de
+   escopo. A tela quebrava com `t is not defined`, e nada pegou: o build
+   passou, o `oxlint` passou (não tem `no-undef` ligado) e os 445 testes
+   passaram, porque a faixa só aparece com licença vencida. Agora há dois
+   guardas: `teste:idioma` proíbe `t(` cru em arquivo que importa `tx`
+   (tarefa é objeto — `t.nome` —, então não há uso legítimo), e
+   `teste:portao` renderiza a faixa de carência de verdade. A lição é a
+   regra: **tela que só aparece em estado raro precisa de teste que a
+   coloque nesse estado.**
 3. **Traduzir não localiza.** Um idioma só entra em `COMPLETOS` — e só então
    aparece no seletor — quando tem, além da interface: vocabulário-núcleo
    próprio (a lista de palavras muda de língua para língua, não é tradução
@@ -231,6 +256,20 @@ O app vai ser multilíngue (espanhol e inglês a caminho). Três regras:
    mantém o produto fora do registro de dispositivo médico aqui; lá fora é
    MDR ou FDA, e a página de privacidade citando a LGPD vira documento
    errado. Meio app em espanhol é pior que app em português.
+
+**A prévia de idioma, e por que ela mora na licença.** A regra acima tem um
+custo que só aparece depois: sem caminho nenhum, não havia como *testar*
+espanhol e inglês num aparelho de verdade, e revisão de tom empurrada para o
+fim sai caro. Então quem destrava é a licença, do mesmo jeito que destrava o
+nível 4 — `previa: true` em `docs/licencas.json`, `definirPrevia()` no
+Portão. Uma clínica não cai nisso por acidente, e o idioma incompleto aparece
+**rotulado** como incompleto, porque um idioma pela metade que *parece*
+pronto é pior que nenhum: quem testa reportaria as tarefas em português como
+defeito. Duas coisas deliberadas: a prévia só oferece idioma cuja interface
+está inteira (`faltando(id).length === 0`), e **não entra em `doAparelho`** —
+um aparelho em espanhol não abre o app em espanhol por ter prévia ligada. A
+prévia é escolha de tela, nunca padrão herdado. Nada disso mexe em
+`COMPLETOS`, e há teste travando as duas coisas.
 
 **O guarda, e por que ele tem linha de base.** São centenas de cadeias ainda cruas,
 e migrar leva semanas. Um teste que só passa quando tudo estiver migrado é
@@ -356,11 +395,12 @@ percebe e abandona.
 
 ```bash
 npm run build     # tem de passar sem avisos
-npm run teste     # 445 verificações, em doze suítes
+npm run teste     # 455 verificações, em doze suítes
 ```
 
 As suítes, se precisar rodar uma só: `teste:fluxo` (ativação → níveis → rotina →
-atualização), `teste:portao` (a tela de código: colar, erros e contraste),
+atualização), `teste:portao` (a tela de código: colar, erros, contraste, os três idiomas,
+a faixa de carência e a prévia de idioma),
 `teste:contatos`, `teste:apoio` (a derivação dos ajustes),
 `teste:identificacao` (da tela ao app aplicando o perfil), `teste:modulos`
 (prancha e sentimentos), `teste:notas` (o caderno e o resumo),

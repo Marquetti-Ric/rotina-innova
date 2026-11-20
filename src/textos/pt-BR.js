@@ -42,6 +42,8 @@ export default {
   /* --------------------------------------------------------- o idioma */
   'idioma.titulo': 'Idioma',
   'idioma.texto': 'Muda a língua do app inteiro, inclusive a voz.',
+  'idioma.previa': 'prévia — interface só',
+  'idioma.previa.aviso': 'Os idiomas marcados como prévia têm a interface traduzida, mas as tarefas, as etiquetas e a prancha seguem em português, e falta a revisão de quem fala a língua. Servem para testar, não para entregar a uma família.',
   'idioma.semVoz': 'Este aparelho não tem a voz de {idioma} instalada. O app continua funcionando, mas a narração em voz alta fica muda até alguém instalar o pacote de voz nas configurações do aparelho.',
 
   /* ------------------------------------------- telas da criança */
@@ -85,4 +87,18 @@ export default {
   'jovem.devolver.titulo': 'Devolver o app',
   'jovem.devolver.texto': 'Se você não quiser mais cuidar disso, dá para devolver. Suas tarefas e anotações ficam como estão.',
   'jovem.devolver.botao': 'Devolver',
+
+  /* Licença, na área dos responsáveis. Existe porque a clínica pode liberar
+     o nível 4 ou renovar, e isso vem num código novo: sem esta tela a
+     família teria de desinstalar, e desinstalar apaga a rotina da criança. */
+  'licenca.titulo': 'Licença',
+  'licenca.semValidade': 'sem data de vencimento',
+  'licenca.vence': 'vence em {dia}',
+  'licenca.titular.clinica': 'no nome da clínica',
+  'licenca.titular.pessoa': 'no seu nome',
+  'licenca.nivel4.sim': 'nível 4 liberado',
+  'licenca.nivel4.nao': 'nível 4 não liberado nesta licença',
+  'licenca.trocar': 'Trocar o código de acesso',
+  'licenca.trocar.confirmar': 'Toque de novo para pedir o código',
+  'licenca.trocar.texto': 'Se a clínica mandou um código novo — por renovação, ou para liberar o nível 4 — é aqui que ele entra. A rotina, as anotações e o perfil ficam como estão: só o código é trocado.',
 };

@@ -32,7 +32,8 @@
       "validade": "2027-12-31",
       "ativa": true,
       "titular": "clinica",
-      "nivel4": true
+      "nivel4": true,
+      "previa": true
     }
   ]
 }

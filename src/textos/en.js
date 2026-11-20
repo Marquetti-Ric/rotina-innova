@@ -40,6 +40,8 @@ export default {
 
   'idioma.titulo': 'Language',
   'idioma.texto': 'Changes the language of the whole app, including the voice.',
+  'idioma.previa': 'preview — interface only',
+  'idioma.previa.aviso': 'Languages marked as preview have a translated interface, but the tasks, the labels and the board are still in Portuguese, and a native speaker has not reviewed the tone. They are for testing, not for handing to a family.',
   'idioma.semVoz': 'This device does not have the {idioma} voice installed. The app still works, but read-aloud stays silent until someone installs the voice pack in the device settings.',
 
   /* ------------------------------------------- telas da criança */
@@ -82,5 +84,16 @@ export default {
   'jovem.notas.botao': 'Open the notebook',
   'jovem.devolver.titulo': 'Hand the app back',
   'jovem.devolver.texto': 'If you no longer want to look after this, you can hand it back. Your tasks and notes stay as they are.',
+  'licenca.titulo': 'Licence',
+  'licenca.semValidade': 'no expiry date',
+  'licenca.vence': 'expires {dia}',
+  'licenca.titular.clinica': 'in the clinic’s name',
+  'licenca.titular.pessoa': 'in your name',
+  'licenca.nivel4.sim': 'level 4 enabled',
+  'licenca.nivel4.nao': 'level 4 not enabled on this licence',
+  'licenca.trocar': 'Change the access code',
+  'licenca.trocar.confirmar': 'Tap again to be asked for the code',
+  'licenca.trocar.texto': 'If the clinic sent a new code — a renewal, or to enable level 4 — this is where it goes. The routine, the notes and the profile stay as they are: only the code changes.',
+
   'jovem.devolver.botao': 'Hand back',
 };

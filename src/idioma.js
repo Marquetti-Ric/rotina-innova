@@ -36,7 +36,25 @@ export const PADRAO_IDIOMA = 'pt-BR';
 export const COMPLETOS = ['pt-BR'];
 
 export const ehCompleto = (id) => COMPLETOS.includes(id);
-export const oferecidos = () => IDIOMAS.filter((i) => ehCompleto(i.id));
+
+/* A prévia. Um idioma incompleto não aparece para ninguém — é a regra, e
+ * existe porque interface traduzida com tarefas em português é pior que app
+ * em português. Mas então não havia como *testar* espanhol e inglês num
+ * aparelho de verdade, o que empurra a revisão para o fim, quando sai caro.
+ *
+ * Então quem destrava é a licença, do mesmo jeito que destrava o nível 4: a
+ * licença decide o que esta instalação mostra. Uma clínica não cai nisso por
+ * acidente, e o idioma incompleto aparece rotulado como incompleto.
+ *
+ * Deliberadamente NÃO entra em `doAparelho`: um aparelho em espanhol não
+ * abre o app em espanhol por ter prévia ligada. A prévia é uma escolha que
+ * alguém faz na tela, nunca um padrão herdado. */
+let previa = false;
+export const definirPrevia = (v) => { previa = v === true; };
+export const temPrevia = () => previa;
+
+export const oferecidos = () =>
+  IDIOMAS.filter((i) => ehCompleto(i.id) || (previa && faltando(i.id).length === 0));
 export const infoDe = (id) => IDIOMAS.find((i) => i.id === id) || IDIOMAS[0];
 
 /* O idioma do aparelho, se for um que o app fala. Só vale como sugestão

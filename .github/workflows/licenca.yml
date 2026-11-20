@@ -10,7 +10,7 @@ on:
         description: 'O que fazer'
         required: true
         type: choice
-        options: [liberar, renovar, revogar, listar]
+        options: [liberar, renovar, nivel4, previa, revogar, listar]
         default: liberar
       apelido:
         description: 'Apelido do usuário (arquivo é PÚBLICO — use apelido, nunca nome completo de criança)'
@@ -21,9 +21,31 @@ on:
         required: false
         default: ''
       codigo:
-        description: 'Código existente (para renovar ou revogar)'
+        description: 'Código existente (renovar, nivel4, previa, revogar)'
         required: false
         default: ''
+      titular:
+        description: 'Quem responde pela licença (só em liberar)'
+        required: false
+        type: choice
+        options: [pessoa, clinica]
+        default: pessoa
+      nivel4:
+        description: 'Liberar o nível 4, em que o jovem é dono do app (liberar)'
+        required: false
+        type: boolean
+        default: false
+      previa:
+        description: 'Prévia de idioma — espanhol e inglês incompletos, só para testar (liberar)'
+        required: false
+        type: boolean
+        default: false
+      valor:
+        description: 'Ligar (sim) ou desligar (não) — para as ações nivel4 e previa'
+        required: false
+        type: choice
+        options: [sim, nao]
+        default: sim
 
 permissions:
   contents: write
@@ -37,14 +59,32 @@ jobs:
       - uses: actions/setup-node@v4
         with: { node-version: '22' }
 
+      # Os valores vão por env, nunca interpolados dentro do shell: apelido é
+      # texto livre, e texto livre colado num `run:` é injeção de comando.
       - name: Executar
         id: lic
+        env:
+          ACAO: ${{ inputs.acao }}
+          APELIDO: ${{ inputs.apelido }}
+          VALIDADE: ${{ inputs.validade }}
+          CODIGO: ${{ inputs.codigo }}
+          TITULAR: ${{ inputs.titular }}
+          NIVEL4: ${{ inputs.nivel4 }}
+          PREVIA: ${{ inputs.previa }}
+          VALOR: ${{ inputs.valor }}
         run: |
+          # O gerador lê "sim"; o checkbox do GitHub manda "true"/"false".
+          n4=$([ "$NIVEL4" = "true" ] && echo sim || echo nao)
+          pv=$([ "$PREVIA" = "true" ] && echo sim || echo nao)
           node scripts/licenca.mjs \
-            --acao "${{ inputs.acao }}" \
-            --apelido "${{ inputs.apelido }}" \
-            --validade "${{ inputs.validade }}" \
-            --codigo "${{ inputs.codigo }}" \
+            --acao "$ACAO" \
+            --apelido "$APELIDO" \
+            --validade "$VALIDADE" \
+            --codigo "$CODIGO" \
+            --titular "$TITULAR" \
+            --nivel4 "$n4" \
+            --previa "$pv" \
+            --valor "$VALOR" \
             >> $GITHUB_STEP_SUMMARY
 
       - name: Commitar alteração

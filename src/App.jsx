@@ -31,7 +31,8 @@ import {
 } from "./nivel4.js";
 import Jovem from "./Jovem.jsx";
 import TAREFAS_PT from "./conteudo/tarefas/pt-BR.js";
-import { oferecidos, definirIdioma, doAparelho, idiomaAtual, infoDe, tx } from "./idioma.js";
+import { oferecidos, definirIdioma, doAparelho, idiomaAtual, infoDe, tx, dataPorExtenso,
+  ehCompleto, temPrevia } from "./idioma.js";
 import { faltaVoz, esquecerVozes } from "./voz.js";
 import { PassagemAdulto, PassagemJovem, AvisoRetomada } from "./Passagem.jsx";
 
@@ -1578,7 +1579,7 @@ function ajustar(d, t, mudanca) {
   return { custom: (d.custom || []).map((x) => (x.id === t.id ? { ...x, ...mudanca } : x)) };
 }
 
-export default function App({ licenca = null }) {
+export default function App({ licenca = null, aoTrocarCodigo = null }) {
   const [d, setD] = useState(PADRAO);
   const [carregado, setCarregado] = useState(false);
   const [abertura, setAbertura] = useState("visivel");
@@ -2582,10 +2583,22 @@ export default function App({ licenca = null }) {
                   {oferecidos().map((i) => (
                     <button key={i.id} className="nivel" data-on={idiomaAtual() === i.id ? 1 : 0}
                       onClick={() => { definirIdioma(i.id); esquecerVozes(); salvar({ ...d, idioma: i.id }); }}>
-                      <span><span className="nivel-nome">{i.nome}</span></span>
+                      <span>
+                        <span className="nivel-nome">{i.nome}</span>
+                        {/* Idioma de prévia vem rotulado. Um idioma pela
+                            metade que *parece* pronto é pior que nenhum: quem
+                            testa precisa saber que as tarefas seguem em
+                            português, senão reporta como defeito. */}
+                        {!ehCompleto(i.id) && (
+                          <span className="nivel-desc">{tx('idioma.previa')}</span>
+                        )}
+                      </span>
                     </button>
                   ))}
                 </div>
+                {temPrevia() && (
+                  <p className="aviso" style={{ marginTop: 10 }}>{tx('idioma.previa.aviso')}</p>
+                )}
               </div>
             )}
 
@@ -2827,6 +2840,43 @@ export default function App({ licenca = null }) {
             }}>
             {modal === "zerar" ? "Toque de novo para apagar tudo" : "Zerar todo o progresso"}
           </button>
+
+          {/* A licença, e o caminho para trocar o código. Sem isto a clínica
+              não consegue liberar o nível 4 nem renovar num aparelho já
+              ativado: o código novo não tem por onde entrar, e a única saída
+              seria desinstalar — que apaga a rotina da criança. Trocar o
+              código não toca em nada guardado: são chaves separadas. */}
+          {licenca && aoTrocarCodigo && (
+            <div>
+              <div className="linha-nome" style={{ marginBottom: 8 }}>{tx('licenca.titulo')}</div>
+              <div className="deriv" style={{ marginBottom: 11 }}>
+                <div className="deriv-tit">
+                  {licenca.apelido || tx('licenca.titulo')}
+                </div>
+                <p className="opc-desc" style={{ margin: 0 }}>
+                  {licenca.validade
+                    ? tx('licenca.vence', { dia: dataPorExtenso(licenca.validade) })
+                    : tx('licenca.semValidade')}
+                  {' · '}
+                  {tx(licenca.titular === 'clinica'
+                    ? 'licenca.titular.clinica' : 'licenca.titular.pessoa')}
+                  {' · '}
+                  {tx(licenca.nivel4 ? 'licenca.nivel4.sim' : 'licenca.nivel4.nao')}
+                </p>
+              </div>
+              <p className="linha-desc" style={{ marginBottom: 10 }}>
+                {tx('licenca.trocar.texto')}
+              </p>
+              <button className="btn-plano neutro"
+                onClick={() => {
+                  if (modal === "trocar-codigo") { setModal(null); aoTrocarCodigo(); }
+                  else setModal("trocar-codigo");
+                }}>
+                {modal === "trocar-codigo"
+                  ? tx('licenca.trocar.confirmar') : tx('licenca.trocar')}
+              </button>
+            </div>
+          )}
 
           <div className="institucional">
             <LogoMarca tamanho="medio" />
