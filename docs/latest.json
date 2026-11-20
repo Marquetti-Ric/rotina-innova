@@ -1,10 +1,10 @@
 {
-  "versionName": "1.7.0",
-  "versionCode": 29,
+  "versionName": "1.8.0",
+  "versionCode": 36,
   "tamanho": "4.1M",
-  "publicadoEm": "2026-11-18",
-  "apk": "https://github.com/Marquetti-Ric/rotina-innova/releases/download/v1.7.0/combinado-1.7.0.apk",
-  "release": "https://github.com/Marquetti-Ric/rotina-innova/releases/tag/v1.7.0",
+  "publicadoEm": "2026-11-20",
+  "apk": "https://github.com/Marquetti-Ric/rotina-innova/releases/download/v1.8.0/combinado-1.8.0.apk",
+  "release": "https://github.com/Marquetti-Ric/rotina-innova/releases/tag/v1.8.0",
   "obrigatoria": false,
   "notas": "Nova versão disponível."
 }
