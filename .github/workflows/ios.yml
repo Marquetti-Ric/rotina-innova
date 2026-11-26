@@ -69,27 +69,13 @@ jobs:
             exit 1
           fi
 
-      # A versão não mora no pbxproj: o `docs/latest.json` é a fonte única,
-      # como no Android, onde o release.yml também grava no gradle só na hora
-      # de compilar. Duas versões escritas à mão em dois lugares divergem.
-      #
-      # O número de build é outra coisa: o App Store Connect recusa build
-      # repetido, então ele tem de subir a cada envio, mesmo sem versão nova.
-      # `run_number` sobe sozinho e nunca repete. O versionCode do Android
-      # não serve aqui, porque reenviar a mesma versão é rotina em teste.
+      # O mesmo script que o Mac roda antes de arquivar pelo Xcode. É um
+      # script e não dois `sed` aqui porque há DOIS lugares que enviam build,
+      # e número de build que não combina entre os dois é envio recusado.
+      # O porquê da conta está no cabeçalho do script.
       - name: Gravar a versão no projeto iOS
         id: versao
-        run: |
-          set -e
-          NOME=$(node -p "require('./docs/latest.json').versionName")
-          CODIGO=${{ github.run_number }}
-          echo "versão $NOME (build $CODIGO)"
-          sed -i '' "s/MARKETING_VERSION = .*/MARKETING_VERSION = $NOME;/" \
-            ios/App/App.xcodeproj/project.pbxproj
-          sed -i '' "s/CURRENT_PROJECT_VERSION = .*/CURRENT_PROJECT_VERSION = $CODIGO;/" \
-            ios/App/App.xcodeproj/project.pbxproj
-          echo "nome=$NOME" >> $GITHUB_OUTPUT
-          echo "codigo=$CODIGO" >> $GITHUB_OUTPUT
+        run: npm run ios:versao
 
       # Antes de compilar: o manifesto de privacidade precisa estar DENTRO do
       # bundle, não só na pasta. Sem ele o App Store Connect recusa o envio

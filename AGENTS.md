@@ -336,11 +336,16 @@ código:
   anotações antigas que pediam isso estão erradas.
 - **A versão de marketing vem do `docs/latest.json`**, gravada no `pbxproj` na
   hora de compilar, igual ao que o `release.yml` faz no gradle. Mas o
-  **número de build é o `run_number` do GitHub**, não o `versionCode` do
-  Android: o App Store Connect recusa build repetido, e reenviar a mesma
-  versão é rotina em teste. É a única divergência proposital entre as duas
-  plataformas, e ela existe porque as lojas contam build de maneiras
-  diferentes.
+  **número de build não é o `versionCode` do Android**: o App Store Connect
+  recusa build repetido, e reenviar a mesma versão é rotina em teste. E a
+  conta tem de valer nos **dois lugares que enviam** — o workflow e o Xcode
+  no Mac. `run_number` servia enquanto só o CI enviava; com os dois, um envio
+  do Mac com número menor que o último do CI é recusado, e isso custa uma
+  rodada inteira para descobrir. Por isso existe `scripts/ios-versao.mjs`
+  (`npm run ios:versao`), chamado pelos dois: conta minutos desde 2020 em
+  UTC, sobe sozinho, nunca repete e cabe num inteiro de 32 bits com folga de
+  séculos. Ele falha em voz alta se não achar as chaves no `pbxproj` —
+  gravar nada em silêncio enviaria a versão velha.
 - **A Apple exige Xcode 26 ou mais novo para *compilar* app de iOS** (para
   *subir*, 14 ou mais novo). Um runner com Xcode velho compila, exporta, sobe
   e só é recusado no fim — depois de gastar o minuto de macOS, que custa dez
@@ -361,10 +366,18 @@ sobe. O envio tenta `--upload-package` e cai para `--upload-app`: o primeiro é
 o não-obsoleto, o segundo é o que funciona quando o primeiro falha, e qual
 rodou fica no log.
 
-Os sete segredos o Ricardo cria na conta dele — o roteiro completo, com e sem
-Mac, está em `ios/LEIA-ME.md`. O workflow só consome: monta um chaveiro
-temporário, põe a `.p8` onde o `altool` a procura, e apaga os três no fim,
-inclusive quando o build falha.
+Os sete segredos o Ricardo cria na conta dele — o roteiro completo está em
+`ios/LEIA-ME.md`. O workflow só consome: monta um chaveiro temporário, põe a
+`.p8` onde o `altool` a procura, e apaga os três no fim, inclusive quando o
+build falha.
+
+**Mas o primeiro envio não precisa de segredo nenhum**, e o roteiro começa por
+ele: o Ricardo tem Mac, e `Product → Archive → Distribute App` assina sozinho.
+Isso não é só atalho — o Xcode **cria** o certificado e o perfil no caminho,
+então o passo mais chato da configuração do CI (passo 4, o `.p12`) vira
+exportar o que já existe. Fazer à mão primeiro deixa a automação mais fácil,
+não mais difícil. Só o App ID e o registro no App Store Connect não têm
+atalho.
 
 ### Mais cinco coisas que não se mexem
 

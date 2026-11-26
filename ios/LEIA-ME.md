@@ -20,6 +20,56 @@
   com alfa a loja recusa.
 - O projeto usa **SPM**, não CocoaPods. Não existe `pod install` aqui.
 
+## Com um Mac: o caminho curto para o primeiro TestFlight
+
+Se você tem Mac, **o primeiro envio não precisa de segredo nenhum.** O Xcode
+assina sozinho, e no caminho ele cria o certificado e o perfil que o workflow
+vai querer depois — então fazer este primeiro envio à mão deixa o CI mais
+fácil, não mais difícil.
+
+O que precisa existir antes: o **App ID** e o **registro no App Store
+Connect** (passos 1 e 2 abaixo). Esses dois não têm atalho.
+
+```bash
+git clone https://github.com/Marquetti-Ric/rotina-innova.git
+cd rotina-innova
+npm ci
+npm run build
+npx cap sync ios
+npm run ios:versao        # grava a versão e o número de build
+open ios/App/App.xcodeproj
+```
+
+No Xcode:
+
+1. Selecione o alvo **App** → aba **Signing & Capabilities**.
+2. Marque **Automatically manage signing** e escolha seu **Team**. O Xcode
+   cria o certificado e o perfil sozinho.
+3. No seletor de destino, no topo, escolha **Any iOS Device (arm64)** — não um
+   simulador. Com simulador selecionado, o menu de arquivar fica cinza, e é
+   isso que confunde na primeira vez.
+4. **Product → Archive.** Leva alguns minutos.
+5. Quando o Organizer abrir: **Distribute App → TestFlight & App Store →
+   Upload.**
+
+Deixe o Xcode cuidar de tudo que ele oferecer para cuidar. Export compliance
+ele não vai perguntar, porque o `Info.plist` já responde.
+
+**Não comite o `project.pbxproj` depois disso.** O `npm run ios:versao` mexe
+nele, e o Xcode também, quando assina. Rode `git checkout
+ios/App/App.xcodeproj/project.pbxproj` ao terminar.
+
+### Por que o número de build é o que é
+
+O App Store Connect recusa build repetido, e reenviar a mesma versão é rotina
+em teste. Só que há **dois** lugares que enviam: o seu Mac e o workflow. Se
+cada um contasse do seu jeito, um envio do Mac com número menor que o último
+do CI seria recusado — e você descobriria isso depois de uma rodada inteira.
+
+Então os dois chamam o mesmo `npm run ios:versao`, que conta minutos desde
+2020 em UTC. Sobe sozinho, nunca repete, e vale dos dois lados. A versão de
+marketing continua vindo do `docs/latest.json`.
+
 ## Os três modos do workflow
 
 `Actions → "Gerar o app de iOS" → Run workflow`.
@@ -48,7 +98,10 @@ Eu não crio, não vejo e não guardo nenhuma destas credenciais. Tudo aqui voc�
 faz na sua conta, e cola em
 `Settings → Secrets and variables → Actions → New repository secret`.
 
-São sete segredos. Faz-se uma vez.
+Os passos **1 e 2** valem para qualquer caminho, inclusive o do Xcode no Mac.
+Os passos 3 a 7 são só para o envio automático — sete segredos, feitos uma
+vez. Se você já enviou pelo Xcode, o certificado e o perfil **já existem** e o
+passo 4 vira só exportar o que está no seu Keychain.
 
 ## 1. O App ID
 
@@ -80,7 +133,9 @@ build.
 
 **Antes de criar um novo, veja se já existe.** A Apple limita certificados de
 distribuição a dois ou três por conta, e eles não se apagam sem revogar. Se já
-houver um, exporte o que existe em vez de criar outro.
+houver um, exporte o que existe em vez de criar outro. **Se você já enviou
+pelo Xcode, existe um** — o Xcode o criou — e aí pule direto para o passo 3 de
+"Com um Mac".
 
 ### Com um Mac
 
