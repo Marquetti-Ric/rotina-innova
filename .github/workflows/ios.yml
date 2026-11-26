@@ -4,13 +4,16 @@ name: Gerar o app de iOS
 # para sair do mesmo ubuntu que gera o APK. Minuto de macOS custa dez vezes
 # mais, por isso aqui não roda a suíte de testes: ela já roda no release.
 #
-# Dois modos, e o padrão não precisa de nada da conta Apple:
+# Três modos, e o primeiro não precisa de nada da conta Apple:
 #
-#   simulador  → compila para o simulador, SEM assinatura. É a checagem de
-#                que o projeto nativo compila de verdade. Zero segredo.
-#   dispositivo→ gera um .ipa assinado para instalar no aparelho. Só funciona
-#                depois que os segredos existirem no repositório; veja
-#                ios/LEIA-ME.md.
+#   simulador   → compila para o simulador, SEM assinatura. É a checagem de
+#                 que o projeto nativo compila. Zero segredo.
+#   dispositivo → .ipa de desenvolvimento, para instalar num aparelho cujo
+#                 UDID esteja no perfil.
+#   testflight  → arquiva, exporta e **sobe** para o TestFlight.
+#
+# Os segredos de assinatura o titular cria na conta dele; este arquivo só
+# consome. O roteiro inteiro está em ios/LEIA-ME.md.
 #
 # Pelo celular: GitHub → Actions → "Gerar o app de iOS" → Run workflow.
 
@@ -25,11 +28,16 @@ on:
         options:
           - simulador
           - dispositivo
+          - testflight
+      notas:
+        description: 'O que testar nesta build (aparece para o testador)'
+        required: false
+        default: ''
 
 jobs:
   ios:
     runs-on: macos-latest
-    timeout-minutes: 45
+    timeout-minutes: 60
 
     steps:
       - uses: actions/checkout@v4
@@ -45,20 +53,43 @@ jobs:
           npm run build
           npx cap sync ios
 
+      # A Apple passou a exigir Xcode 26 ou mais novo para compilar app de
+      # iOS enviado à loja. Um runner com Xcode velho compila, sobe, e só é
+      # recusado no fim — depois de gastar o minuto de macOS. Melhor saber
+      # antes. O build do Xcode 26 começa em 17; daí a conta.
+      - name: Conferir a versão do Xcode
+        run: |
+          set -e
+          xcodebuild -version
+          BUILD=$(xcodebuild -version | sed -n '2s/Build version //p')
+          MAIOR=$(echo "$BUILD" | sed 's/^\([0-9]*\).*/\1/')
+          echo "build do Xcode: $BUILD (série $MAIOR)"
+          if [ "${MAIOR:-0}" -lt 17 ]; then
+            echo "::error::a Apple exige Xcode 26 ou mais novo (série 17+) para build de iOS; este runner tem $BUILD"
+            exit 1
+          fi
+
       # A versão não mora no pbxproj: o `docs/latest.json` é a fonte única,
       # como no Android, onde o release.yml também grava no gradle só na hora
       # de compilar. Duas versões escritas à mão em dois lugares divergem.
+      #
+      # O número de build é outra coisa: o App Store Connect recusa build
+      # repetido, então ele tem de subir a cada envio, mesmo sem versão nova.
+      # `run_number` sobe sozinho e nunca repete. O versionCode do Android
+      # não serve aqui, porque reenviar a mesma versão é rotina em teste.
       - name: Gravar a versão no projeto iOS
+        id: versao
         run: |
           set -e
           NOME=$(node -p "require('./docs/latest.json').versionName")
-          CODIGO=$(node -p "require('./docs/latest.json').versionCode")
+          CODIGO=${{ github.run_number }}
           echo "versão $NOME (build $CODIGO)"
           sed -i '' "s/MARKETING_VERSION = .*/MARKETING_VERSION = $NOME;/" \
             ios/App/App.xcodeproj/project.pbxproj
           sed -i '' "s/CURRENT_PROJECT_VERSION = .*/CURRENT_PROJECT_VERSION = $CODIGO;/" \
             ios/App/App.xcodeproj/project.pbxproj
-          grep -c "MARKETING_VERSION = $NOME;" ios/App/App.xcodeproj/project.pbxproj
+          echo "nome=$NOME" >> $GITHUB_OUTPUT
+          echo "codigo=$CODIGO" >> $GITHUB_OUTPUT
 
       # Antes de compilar: o manifesto de privacidade precisa estar DENTRO do
       # bundle, não só na pasta. Sem ele o App Store Connect recusa o envio
@@ -76,11 +107,6 @@ jobs:
           grep -q "PrivacyInfo.xcprivacy in Resources" ios/App/App.xcodeproj/project.pbxproj \
             || { echo "::error::o manifesto não está na fase Resources: ficaria fora do bundle"; exit 1; }
           echo "manifesto de privacidade: ok"
-
-      - name: Mostrar o Xcode e os esquemas
-        run: |
-          xcodebuild -version
-          xcodebuild -project ios/App/App.xcodeproj -list
 
       # ---------------------------------------------------------- simulador
       - name: Compilar para o simulador, sem assinatura
@@ -105,14 +131,11 @@ jobs:
           set -e
           APP=build-ios/Build/Products/Release-iphonesimulator/App.app
           test -d "$APP" || { echo "::error::não achei o App.app"; exit 1; }
-          # O manifesto tem de estar DENTRO do .app, que é o que a Apple lê.
           test -f "$APP/PrivacyInfo.xcprivacy" \
             || { echo "::error::o manifesto não entrou no bundle"; exit 1; }
-          # A web tem de ter entrado também, senão o app abre em branco.
           test -f "$APP/public/index.html" \
             || { echo "::error::a pasta public não entrou no bundle"; exit 1; }
           echo "bundle completo: manifesto e web dentro"
-          ls -la "$APP"
 
       - name: Guardar o app do simulador
         if: inputs.modo == 'simulador'
@@ -122,34 +145,48 @@ jobs:
           path: build-ios/Build/Products/Release-iphonesimulator/App.app
           retention-days: 14
 
-      # -------------------------------------------------------- dispositivo
-      # Nenhum segredo passa por aqui em texto: o certificado é um .p12 em
-      # base64 e a senha é segredo do repositório. Quem cria é o Ricardo, na
-      # conta dele — este arquivo só consome.
-      - name: Conferir os segredos de assinatura
-        if: inputs.modo == 'dispositivo'
+      # ----------------------------------------------- assinado: os segredos
+      #
+      # Nenhum segredo aparece em texto no log: o certificado é um .p12 em
+      # base64, a senha e a chave da API são segredos do repositório, e todos
+      # entram por `env`, nunca interpolados dentro do shell.
+      - name: Conferir os segredos
+        if: inputs.modo != 'simulador'
         env:
           P12: ${{ secrets.IOS_CERTIFICADO_P12 }}
           SENHA: ${{ secrets.IOS_CERTIFICADO_SENHA }}
-          PERFIL: ${{ secrets.IOS_PERFIL }}
+          PERFIL_DEV: ${{ secrets.IOS_PERFIL }}
+          PERFIL_LOJA: ${{ secrets.IOS_PERFIL_APPSTORE }}
           TIME: ${{ secrets.IOS_TIME }}
+          ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
+          ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
+          ASC_KEY_P8: ${{ secrets.ASC_KEY_P8 }}
         run: |
           faltam=""
           [ -z "$P12" ] && faltam="$faltam IOS_CERTIFICADO_P12"
           [ -z "$SENHA" ] && faltam="$faltam IOS_CERTIFICADO_SENHA"
-          [ -z "$PERFIL" ] && faltam="$faltam IOS_PERFIL"
           [ -z "$TIME" ] && faltam="$faltam IOS_TIME"
+          if [ "${{ inputs.modo }}" = "testflight" ]; then
+            [ -z "$PERFIL_LOJA" ] && faltam="$faltam IOS_PERFIL_APPSTORE"
+            [ -z "$ASC_KEY_ID" ] && faltam="$faltam ASC_KEY_ID"
+            [ -z "$ASC_ISSUER_ID" ] && faltam="$faltam ASC_ISSUER_ID"
+            [ -z "$ASC_KEY_P8" ] && faltam="$faltam ASC_KEY_P8"
+          else
+            [ -z "$PERFIL_DEV" ] && faltam="$faltam IOS_PERFIL"
+          fi
           if [ -n "$faltam" ]; then
-            echo "::error::faltam os segredos:$faltam — veja ios/LEIA-ME.md"
+            echo "::error::faltam os segredos:$faltam — o roteiro de como criar cada um está em ios/LEIA-ME.md"
             exit 1
           fi
+          echo "segredos presentes"
 
       - name: Instalar certificado e perfil no runner
-        if: inputs.modo == 'dispositivo'
+        if: inputs.modo != 'simulador'
+        id: assinatura
         env:
           P12: ${{ secrets.IOS_CERTIFICADO_P12 }}
           SENHA: ${{ secrets.IOS_CERTIFICADO_SENHA }}
-          PERFIL: ${{ secrets.IOS_PERFIL }}
+          PERFIL: ${{ inputs.modo == 'testflight' && secrets.IOS_PERFIL_APPSTORE || secrets.IOS_PERFIL }}
         run: |
           set -e
           # Chaveiro temporário, que morre com o runner.
@@ -164,15 +201,44 @@ jobs:
           security set-key-partition-list -S apple-tool:,apple: \
             -k "$SENHA_CHAVEIRO" "$CHAVEIRO" > /dev/null
           security list-keychain -d user -s "$CHAVEIRO"
-          mkdir -p "$HOME/Library/MobileDevice/Provisioning Profiles"
-          printf '%s' "$PERFIL" | base64 --decode \
-            > "$HOME/Library/MobileDevice/Provisioning Profiles/combinado.mobileprovision"
           rm -f "$RUNNER_TEMP/cert.p12"
 
-      - name: Arquivar e exportar o .ipa
+          mkdir -p "$HOME/Library/MobileDevice/Provisioning Profiles"
+          ALVO="$HOME/Library/MobileDevice/Provisioning Profiles/combinado.mobileprovision"
+          printf '%s' "$PERFIL" | base64 --decode > "$ALVO"
+
+          # O nome e o bundle id saem do próprio perfil: um segredo a menos
+          # para errar de digitação, e dá para conferir agora que o perfil é
+          # do app certo — perfil trocado é erro que só aparece no envio.
+          security cms -D -i "$ALVO" > "$RUNNER_TEMP/perfil.plist"
+          NOME=$(/usr/libexec/PlistBuddy -c 'Print :Name' "$RUNNER_TEMP/perfil.plist")
+          APPID=$(/usr/libexec/PlistBuddy -c 'Print :Entitlements:application-identifier' "$RUNNER_TEMP/perfil.plist")
+          BUNDLE=${APPID#*.}
+          VENCE=$(/usr/libexec/PlistBuddy -c 'Print :ExpirationDate' "$RUNNER_TEMP/perfil.plist")
+          echo "perfil: $NOME"
+          echo "bundle do perfil: $BUNDLE"
+          echo "vence em: $VENCE"
+          if [ "$BUNDLE" != "br.com.combinado.app" ]; then
+            echo "::error::o perfil é de $BUNDLE, e o app é br.com.combinado.app"
+            exit 1
+          fi
+          echo "perfil=$NOME" >> $GITHUB_OUTPUT
+          echo "bundle=$BUNDLE" >> $GITHUB_OUTPUT
+
+          # Qual identidade de assinatura veio no .p12. Distribution serve
+          # para TestFlight e loja; Development só para aparelho registrado.
+          security find-identity -v -p codesigning "$CHAVEIRO" | sed 's/^/  /'
+          if [ "${{ inputs.modo }}" = "testflight" ]; then
+            security find-identity -v -p codesigning "$CHAVEIRO" | grep -q "Distribution" \
+              || { echo "::error::o .p12 não tem certificado de distribuição; TestFlight precisa de um Apple Distribution"; exit 1; }
+          fi
+
+      # -------------------------------------------------------- dispositivo
+      - name: Arquivar e exportar o .ipa de desenvolvimento
         if: inputs.modo == 'dispositivo'
         env:
           TIME: ${{ secrets.IOS_TIME }}
+          PERFIL: ${{ steps.assinatura.outputs.perfil }}
         run: |
           set -e
           cat > "$RUNNER_TEMP/export.plist" <<PLIST
@@ -180,15 +246,21 @@ jobs:
           <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
           <plist version="1.0"><dict>
             <key>method</key><string>development</string>
-            <key>teamID</key><string>$TIME</string>
+            <key>teamID</key><string>${TIME}</string>
             <key>signingStyle</key><string>manual</string>
             <key>compileBitcode</key><false/>
+            <key>provisioningProfiles</key>
+            <dict><key>br.com.combinado.app</key><string>${PERFIL}</string></dict>
           </dict></plist>
           PLIST
           xcodebuild -project ios/App/App.xcodeproj -scheme App \
             -configuration Release -sdk iphoneos \
+            -destination 'generic/platform=iOS' \
             -archivePath "$RUNNER_TEMP/App.xcarchive" \
-            DEVELOPMENT_TEAM="$TIME" archive
+            CODE_SIGN_STYLE=Manual \
+            DEVELOPMENT_TEAM="$TIME" \
+            PROVISIONING_PROFILE_SPECIFIER="$PERFIL" \
+            archive
           xcodebuild -exportArchive \
             -archivePath "$RUNNER_TEMP/App.xcarchive" \
             -exportOptionsPlist "$RUNNER_TEMP/export.plist" \
@@ -202,6 +274,143 @@ jobs:
           path: ${{ runner.temp }}/ipa/*.ipa
           retention-days: 14
 
+      # --------------------------------------------------------- testflight
+      - name: Arquivar para a loja
+        if: inputs.modo == 'testflight'
+        env:
+          TIME: ${{ secrets.IOS_TIME }}
+          PERFIL: ${{ steps.assinatura.outputs.perfil }}
+        run: |
+          set -e
+          xcodebuild -project ios/App/App.xcodeproj -scheme App \
+            -configuration Release -sdk iphoneos \
+            -destination 'generic/platform=iOS' \
+            -archivePath "$RUNNER_TEMP/App.xcarchive" \
+            CODE_SIGN_STYLE=Manual \
+            DEVELOPMENT_TEAM="$TIME" \
+            PROVISIONING_PROFILE_SPECIFIER="$PERFIL" \
+            CODE_SIGN_IDENTITY="Apple Distribution" \
+            archive
+
+      - name: Exportar o .ipa de loja
+        if: inputs.modo == 'testflight'
+        env:
+          TIME: ${{ secrets.IOS_TIME }}
+          PERFIL: ${{ steps.assinatura.outputs.perfil }}
+        run: |
+          set -e
+          # O Xcode 15 renomeou `app-store` para `app-store-connect`. O nome
+          # antigo ainda é aceito, mas não em toda versão: tenta o novo e cai
+          # para o antigo, em vez de morrer num nome de string.
+          escrever() {
+            cat > "$RUNNER_TEMP/export.plist" <<PLIST
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0"><dict>
+            <key>method</key><string>$1</string>
+            <key>teamID</key><string>${TIME}</string>
+            <key>signingStyle</key><string>manual</string>
+            <key>compileBitcode</key><false/>
+            <key>uploadSymbols</key><true/>
+            <key>provisioningProfiles</key>
+            <dict><key>br.com.combinado.app</key><string>${PERFIL}</string></dict>
+          </dict></plist>
+          PLIST
+          }
+          exportar() {
+            xcodebuild -exportArchive \
+              -archivePath "$RUNNER_TEMP/App.xcarchive" \
+              -exportOptionsPlist "$RUNNER_TEMP/export.plist" \
+              -exportPath "$RUNNER_TEMP/ipa"
+          }
+          escrever app-store-connect
+          if ! exportar; then
+            echo "::warning::export com app-store-connect falhou; tentando o nome antigo app-store"
+            rm -rf "$RUNNER_TEMP/ipa"
+            escrever app-store
+            exportar
+          fi
+          ls -la "$RUNNER_TEMP/ipa"
+
+      - name: Conferir e subir para o TestFlight
+        if: inputs.modo == 'testflight'
+        env:
+          ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
+          ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
+          ASC_KEY_P8: ${{ secrets.ASC_KEY_P8 }}
+          NOME: ${{ steps.versao.outputs.nome }}
+          CODIGO: ${{ steps.versao.outputs.codigo }}
+        run: |
+          set -e
+          IPA=$(ls "$RUNNER_TEMP/ipa"/*.ipa | head -1)
+          echo "subindo $(basename "$IPA") — versão $NOME, build $CODIGO"
+
+          # A chave .p8 vai para onde o altool a procura por conta própria,
+          # para não passar caminho de arquivo em linha de comando.
+          mkdir -p "$HOME/.appstoreconnect/private_keys"
+          printf '%s' "$ASC_KEY_P8" | base64 --decode \
+            > "$HOME/.appstoreconnect/private_keys/AuthKey_${ASC_KEY_ID}.p8"
+          chmod 600 "$HOME/.appstoreconnect/private_keys/AuthKey_${ASC_KEY_ID}.p8"
+
+          # Conferir antes de subir: a validação pega quase todo ITMS- em
+          # segundos, e um envio recusado leva minutos e um e-mail da Apple.
+          xcrun altool --validate-app -f "$IPA" -t ios \
+            --apiKey "$ASC_KEY_ID" --apiIssuer "$ASC_ISSUER_ID" \
+            || { echo "::error::a validação recusou o pacote; o motivo está acima"; exit 1; }
+
+          # `--upload-app` está marcado como obsoleto, e `--upload-package`
+          # exige metadados que o próprio .ipa já carrega. Tenta o novo com os
+          # dados que temos; se o altool recusar, cai para o antigo, que
+          # continua funcionando. Qual dos dois rodou fica no log.
+          if xcrun altool --upload-package "$IPA" -t ios \
+              --bundle-id br.com.combinado.app \
+              --bundle-version "$CODIGO" \
+              --bundle-short-version-string "$NOME" \
+              --apiKey "$ASC_KEY_ID" --apiIssuer "$ASC_ISSUER_ID"; then
+            echo "subiu com --upload-package"
+          else
+            echo "::warning::--upload-package falhou; tentando --upload-app"
+            xcrun altool --upload-app -f "$IPA" -t ios \
+              --apiKey "$ASC_KEY_ID" --apiIssuer "$ASC_ISSUER_ID"
+            echo "subiu com --upload-app"
+          fi
+
+          rm -f "$HOME/.appstoreconnect/private_keys/AuthKey_${ASC_KEY_ID}.p8"
+
+      - name: Resumo
+        if: inputs.modo == 'testflight'
+        env:
+          NOME: ${{ steps.versao.outputs.nome }}
+          CODIGO: ${{ steps.versao.outputs.codigo }}
+          NOTAS: ${{ inputs.notas }}
+        run: |
+          {
+            echo "## Subiu para o TestFlight"
+            echo ""
+            echo "- Versão: **$NOME**, build **$CODIGO**"
+            echo "- Commit: \`${GITHUB_SHA:0:7}\`"
+            [ -n "$NOTAS" ] && echo "- O que testar: $NOTAS"
+            echo ""
+            echo "O build aparece no App Store Connect depois do processamento"
+            echo "— normalmente de 5 a 30 minutos. Até lá ele fica como"
+            echo "\"Processing\" e não dá para convidar ninguém."
+            echo ""
+            echo "Teste **interno** (até 100 pessoas da equipe) libera assim"
+            echo "que processar. Teste **externo** passa por uma revisão da"
+            echo "Apple e exige a ficha de privacidade preenchida."
+          } >> $GITHUB_STEP_SUMMARY
+
+      - name: Guardar o .ipa de loja
+        if: inputs.modo == 'testflight'
+        uses: actions/upload-artifact@v4
+        with:
+          name: combinado-ipa-loja
+          path: ${{ runner.temp }}/ipa/*.ipa
+          retention-days: 14
+
       - name: Limpar o chaveiro
-        if: always() && inputs.modo == 'dispositivo'
-        run: security delete-keychain "$RUNNER_TEMP/build.keychain" || true
+        if: always() && inputs.modo != 'simulador'
+        run: |
+          security delete-keychain "$RUNNER_TEMP/build.keychain" || true
+          rm -f "$HOME/Library/MobileDevice/Provisioning Profiles/combinado.mobileprovision" || true
+          rm -rf "$HOME/.appstoreconnect/private_keys" || true

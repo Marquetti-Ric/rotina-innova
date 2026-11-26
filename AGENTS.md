@@ -315,7 +315,7 @@ responsáveis dizer isso.
 O Portão está migrado por inteiro e serve de padrão; `teste:portao` o
 renderiza nos três idiomas e confere que não sobra português na tela.
 
-### iOS — quatro coisas que o projeto já resolveu
+### iOS — seis coisas que o projeto já resolveu
 
 O detalhe inteiro está em `ios/LEIA-ME.md`. O que não se descobre lendo o
 código:
@@ -334,15 +334,37 @@ código:
   manifesto entrou no bundle depois.
 - **O projeto usa SPM, não CocoaPods.** Não existe `pod install` aqui, e as
   anotações antigas que pediam isso estão erradas.
-- **A versão vem do `docs/latest.json`**, gravada no `pbxproj` na hora de
-  compilar, igual ao que o `release.yml` faz no gradle. Versão escrita à mão
-  em dois lugares diverge.
+- **A versão de marketing vem do `docs/latest.json`**, gravada no `pbxproj` na
+  hora de compilar, igual ao que o `release.yml` faz no gradle. Mas o
+  **número de build é o `run_number` do GitHub**, não o `versionCode` do
+  Android: o App Store Connect recusa build repetido, e reenviar a mesma
+  versão é rotina em teste. É a única divergência proposital entre as duas
+  plataformas, e ela existe porque as lojas contam build de maneiras
+  diferentes.
+- **A Apple exige Xcode 26 ou mais novo para *compilar* app de iOS** (para
+  *subir*, 14 ou mais novo). Um runner com Xcode velho compila, exporta, sobe
+  e só é recusado no fim — depois de gastar o minuto de macOS, que custa dez
+  vezes o do ubuntu. Por isso o workflow confere a série do build do Xcode
+  antes de qualquer coisa.
+- **O nome e o bundle id do perfil saem de dentro do próprio perfil**
+  (`security cms -D` + `PlistBuddy`), nunca de um segredo digitado à mão. E o
+  workflow recusa perfil que não seja de `br.com.combinado.app`: perfil
+  trocado é erro que de outro jeito só aparece no envio, minutos depois.
 
-O modo `simulador` do workflow compila **sem assinatura nenhuma** e não
-precisa de segredo: ele prova que o projeto nativo compila. Build de
-simulador não roda em aparelho — isso é desenho da Apple, não limitação do
-workflow. Os quatro segredos de assinatura o Ricardo cria na conta dele; o
-workflow só consome, monta um chaveiro temporário e o apaga no fim.
+Três modos. O `simulador` compila **sem assinatura nenhuma** e não precisa de
+segredo: ele prova que o projeto nativo compila, e é o único que roda sem a
+conta Apple. Build de simulador não roda em aparelho — desenho da Apple, não
+limitação do workflow. O `dispositivo` gera `.ipa` de desenvolvimento, e o
+`testflight` arquiva, **valida** (`altool --validate-app` pega quase todo
+`ITMS-` em segundos, antes de um envio que leva minutos e volta por e-mail) e
+sobe. O envio tenta `--upload-package` e cai para `--upload-app`: o primeiro é
+o não-obsoleto, o segundo é o que funciona quando o primeiro falha, e qual
+rodou fica no log.
+
+Os sete segredos o Ricardo cria na conta dele — o roteiro completo, com e sem
+Mac, está em `ios/LEIA-ME.md`. O workflow só consome: monta um chaveiro
+temporário, põe a `.p8` onde o `altool` a procura, e apaga os três no fim,
+inclusive quando o build falha.
 
 ### Mais cinco coisas que não se mexem
 
